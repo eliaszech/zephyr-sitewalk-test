@@ -1,0 +1,6 @@
+{
+  "description": "Ruft den Status der Ländlekasse ab",
+  "method": "GET",
+  "name": "Status",
+  "url": "{{base_url}}/api/shop/status"
+}

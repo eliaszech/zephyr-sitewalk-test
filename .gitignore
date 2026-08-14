@@ -1,0 +1,5 @@
+# Zephyr: lokale Secrets, nicht einchecken
+.zephyr/secrets.local.json
+
+# Zephyr: lokale Daten, nicht einchecken
+.zephyr/history.json
