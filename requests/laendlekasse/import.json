@@ -18,7 +18,7 @@
         },
         "group": "GetProducts",
         "x": 420,
-        "y": -12
+        "y": -48
       },
       {
         "id": "produkt",
@@ -29,20 +29,7 @@
           "uuid": "$extract-3.body"
         },
         "x": 864,
-        "y": 84
-      },
-      {
-        "id": "message",
-        "kind": "message",
-        "vars": {
-          "input": "$template.body"
-        },
-        "data": {
-          "title": "Gewähltes Produkt"
-        },
-        "group": "Message",
-        "x": 1332,
-        "y": 72
+        "y": 60
       },
       {
         "id": "extract-2",
@@ -53,9 +40,9 @@
         "data": {
           "path": "data.featured.title"
         },
-        "group": "Message",
+        "group": "gruppe",
         "x": 1332,
-        "y": 264
+        "y": 312
       },
       {
         "id": "template",
@@ -66,9 +53,9 @@
         "data": {
           "text": "{{input}} wurde abgefragt."
         },
-        "group": "Message",
+        "group": "gruppe",
         "x": 1332,
-        "y": 180
+        "y": 228
       },
       {
         "id": "extract",
@@ -81,7 +68,7 @@
         },
         "group": "GetProducts",
         "x": 420,
-        "y": 240
+        "y": 204
       },
       {
         "id": "sample",
@@ -91,7 +78,7 @@
         },
         "group": "GetProducts",
         "x": 420,
-        "y": 348
+        "y": 312
       },
       {
         "id": "extract-3",
@@ -104,20 +91,43 @@
         },
         "group": "GetProducts",
         "x": 420,
-        "y": 456
+        "y": 420
       },
       {
         "id": "env",
         "kind": "env",
         "x": -72,
         "y": 132
+      },
+      {
+        "id": "log",
+        "kind": "log",
+        "vars": {
+          "input": "$template.body"
+        },
+        "data": {
+          "label": ""
+        },
+        "group": "gruppe",
+        "x": 1332,
+        "y": 144
+      },
+      {
+        "id": "export",
+        "kind": "export",
+        "vars": {
+          "input": "$produkt.body"
+        },
+        "data": {
+          "path": "exports/run.txt",
+          "format": "text"
+        },
+        "group": "gruppe",
+        "x": 1332,
+        "y": -36
       }
     ],
     "edges": [
-      {
-        "from": "produkt.success",
-        "to": "message"
-      },
       {
         "from": "start",
         "to": "produkte"
@@ -125,6 +135,10 @@
       {
         "from": "produkte.success",
         "to": "produkt"
+      },
+      {
+        "from": "produkt",
+        "to": "export"
       }
     ]
   },
