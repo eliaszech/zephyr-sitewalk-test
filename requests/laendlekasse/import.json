@@ -1,0 +1,132 @@
+{
+  "type": "runbook",
+  "name": "Get Random Product",
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "kind": "start",
+        "x": -72,
+        "y": 36
+      },
+      {
+        "id": "produkte",
+        "request": "requests/laendlekasse/produkte.json",
+        "vars": {
+          "base_url": "$env.body.base_url",
+          "token": "$env.body.token"
+        },
+        "group": "GetProducts",
+        "x": 420,
+        "y": -12
+      },
+      {
+        "id": "produkt",
+        "request": "requests/laendlekasse/produkt.json",
+        "vars": {
+          "base_url": "$env.body.base_url",
+          "token": "$env.body.token",
+          "uuid": "$extract-3.body"
+        },
+        "x": 864,
+        "y": 84
+      },
+      {
+        "id": "message",
+        "kind": "message",
+        "vars": {
+          "input": "$template.body"
+        },
+        "data": {
+          "title": "Gewähltes Produkt"
+        },
+        "group": "Message",
+        "x": 1332,
+        "y": 72
+      },
+      {
+        "id": "extract-2",
+        "kind": "extract",
+        "vars": {
+          "input": "$produkt.body"
+        },
+        "data": {
+          "path": "data.featured.title"
+        },
+        "group": "Message",
+        "x": 1332,
+        "y": 264
+      },
+      {
+        "id": "template",
+        "kind": "template",
+        "vars": {
+          "input": "$extract-2.body"
+        },
+        "data": {
+          "text": "{{input}} wurde abgefragt."
+        },
+        "group": "Message",
+        "x": 1332,
+        "y": 180
+      },
+      {
+        "id": "extract",
+        "kind": "extract",
+        "vars": {
+          "input": "$produkte.body"
+        },
+        "data": {
+          "path": "data"
+        },
+        "group": "GetProducts",
+        "x": 420,
+        "y": 240
+      },
+      {
+        "id": "sample",
+        "kind": "sample",
+        "vars": {
+          "list": "$extract.body"
+        },
+        "group": "GetProducts",
+        "x": 420,
+        "y": 348
+      },
+      {
+        "id": "extract-3",
+        "kind": "extract",
+        "vars": {
+          "input": "$sample.body.value"
+        },
+        "data": {
+          "path": "id"
+        },
+        "group": "GetProducts",
+        "x": 420,
+        "y": 456
+      },
+      {
+        "id": "env",
+        "kind": "env",
+        "x": -72,
+        "y": 132
+      }
+    ],
+    "edges": [
+      {
+        "from": "produkt.success",
+        "to": "message"
+      },
+      {
+        "from": "start",
+        "to": "produkte"
+      },
+      {
+        "from": "produkte.success",
+        "to": "produkt"
+      }
+    ]
+  },
+  "description": "Dies ist ein test run book."
+}

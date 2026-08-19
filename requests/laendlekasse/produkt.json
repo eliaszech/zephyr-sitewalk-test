@@ -1,0 +1,5 @@
+{
+  "name": "Produkt",
+  "method": "GET",
+  "url": "{{base_url}}/api/shop/products/{{uuid}}"
+}
