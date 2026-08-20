@@ -150,6 +150,21 @@
         },
         "x": -12,
         "y": -192
+      },
+      {
+        "id": "end",
+        "kind": "end",
+        "vars": {
+          "product": "$produkt.body"
+        },
+        "data": {
+          "label": ""
+        },
+        "ports": [
+          "product"
+        ],
+        "x": 2052,
+        "y": 0
       }
     ],
     "edges": [
@@ -172,6 +187,10 @@
       {
         "from": "produkte.success",
         "to": "produkt"
+      },
+      {
+        "from": "log-2",
+        "to": "end"
       }
     ]
   },
