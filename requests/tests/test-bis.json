@@ -1,0 +1,92 @@
+{
+  "type": "runbook",
+  "name": "Test Bis",
+  "description": "Wiederholt, bis ein Ausdruck zutrifft — der Fall „abfragen, bis fertig“. Geprüft wird *vor* jedem Durchgang: beim ersten Blick liegt noch nichts an, also geht es einmal über „each“; danach meldet der Status „ok“ und es ist Schluss. Am Ende steht, wie viele Durchgänge es waren. Die Obergrenze zeigt „Test Bis Grenze“ daneben.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "kind": "start",
+        "x": 60,
+        "y": 120
+      },
+      {
+        "id": "env",
+        "kind": "env",
+        "x": 60,
+        "y": 460
+      },
+      {
+        "id": "abfragen",
+        "kind": "until",
+        "name": "Bis fertig",
+        "comment": "Fragt den Status, bis er „ok“ meldet. Beim ersten Mal wird geprüft, bevor irgendetwas läuft — meldet er schon „ok“, geschieht gar nichts.",
+        "vars": {
+          "input": "$status.body.data.status"
+        },
+        "data": {
+          "expr": "inputs.input == \"ok\"",
+          "max": "5"
+        },
+        "x": 420,
+        "y": 120
+      },
+      {
+        "id": "status",
+        "request": "requests/laendlekasse/status.json",
+        "comment": "Der Schritt, der je Durchgang wiederholt wird. Die Kante von hier zurück auf „Bis fertig“ ist die Wiederholung.",
+        "vars": {
+          "base_url": "$env.body.base_url",
+          "token": "$env.body.token"
+        },
+        "x": 420,
+        "y": 276
+      },
+      {
+        "id": "warten",
+        "kind": "wait",
+        "waitMs": 500,
+        "comment": "Zwischen zwei Abfragen. Ohne ihn hämmert die Wiederholung auf den Endpunkt ein.",
+        "x": 420,
+        "y": 552
+      },
+      {
+        "id": "ende",
+        "kind": "end",
+        "vars": {
+          "durchgaenge": "$abfragen.body.index"
+        },
+        "data": {
+          "label": "fertig"
+        },
+        "ports": [
+          "durchgaenge"
+        ],
+        "x": 816,
+        "y": -60
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "abfragen"
+      },
+      {
+        "from": "abfragen.each",
+        "to": "status"
+      },
+      {
+        "from": "status.success",
+        "to": "warten"
+      },
+      {
+        "from": "warten",
+        "to": "abfragen"
+      },
+      {
+        "from": "abfragen.done",
+        "to": "ende"
+      }
+    ]
+  }
+}

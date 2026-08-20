@@ -1,6 +1,6 @@
 {
   "type": "runbook",
-  "name": "Testing",
+  "name": "Test Date",
   "graph": {
     "nodes": [
       {
@@ -48,42 +48,12 @@
         "group": "gruppe",
         "x": 696,
         "y": -60
-      },
-      {
-        "id": "start-2",
-        "kind": "start",
-        "name": "Start Runbook",
-        "x": 252,
-        "y": 252
-      },
-      {
-        "id": "import",
-        "kind": "subrunbook",
-        "request": "requests/laendlekasse/import.json",
-        "x": 696,
-        "y": 252
-      },
-      {
-        "id": "log",
-        "kind": "log",
-        "vars": {
-          "input": "$import.body.product"
-        },
-        "data": {
-          "label": ""
-        },
-        "x": 1020,
-        "y": 312
       }
     ],
     "edges": [
       {
         "from": "start",
         "to": "log-2"
-      },
-      {
-        "from": "start-2",
-        "to": "import"
       }
     ]
   }

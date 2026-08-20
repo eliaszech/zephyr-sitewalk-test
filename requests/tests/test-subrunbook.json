@@ -1,0 +1,56 @@
+{
+  "type": "runbook",
+  "name": "Test Subrunbook",
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "kind": "start",
+        "x": 80,
+        "y": 60
+      },
+      {
+        "id": "import",
+        "kind": "subrunbook",
+        "request": "requests/laendlekasse/import.json",
+        "x": 408,
+        "y": 60
+      },
+      {
+        "id": "log",
+        "kind": "log",
+        "vars": {
+          "input": "$import.body.product"
+        },
+        "data": {
+          "label": ""
+        },
+        "x": 732,
+        "y": 132
+      },
+      {
+        "id": "start-2",
+        "kind": "start",
+        "x": 84,
+        "y": 324
+      },
+      {
+        "id": "test-bis-grenze",
+        "kind": "subrunbook",
+        "request": "requests/tests/test-bis-grenze.json",
+        "x": 408,
+        "y": 324
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "import"
+      },
+      {
+        "from": "start-2",
+        "to": "test-bis-grenze"
+      }
+    ]
+  }
+}

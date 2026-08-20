@@ -1,0 +1,62 @@
+{
+  "type": "runbook",
+  "name": "Test Bis Grenze",
+  "description": "Läuft absichtlich in einen Fehler. Der Ausdruck wird nie wahr, und nach drei Durchgängen meldet der Knoten das — statt still über „done“ weiterzugehen. Ein leiser Ausstieg sähe aus wie Erfolg, und der Schritt danach liefe weiter, als wäre der Auftrag fertig. In der Zeitleiste stehen deshalb drei Durchgänge und ein roter Balken.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "kind": "start",
+        "x": 60,
+        "y": 120
+      },
+      {
+        "id": "niemals",
+        "kind": "until",
+        "name": "Trifft nie zu",
+        "comment": "Der Ausdruck ist schlicht `false`. Ohne die Obergrenze liefe das bis zur Schrittgrenze — und die meldet etwas ganz anderes.",
+        "data": {
+          "expr": "false",
+          "max": "3"
+        },
+        "x": 420,
+        "y": 120
+      },
+      {
+        "id": "pause",
+        "kind": "wait",
+        "waitMs": 100,
+        "comment": "Steht für den Schritt, der je Durchgang wiederholt wird. Die Kante zurück ist die Wiederholung.",
+        "x": 420,
+        "y": 276
+      },
+      {
+        "id": "ende",
+        "kind": "end",
+        "data": {
+          "label": "hierher kommt der Lauf nie"
+        },
+        "x": 792,
+        "y": 144
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "niemals"
+      },
+      {
+        "from": "niemals.each",
+        "to": "pause"
+      },
+      {
+        "from": "pause",
+        "to": "niemals"
+      },
+      {
+        "from": "niemals.done",
+        "to": "ende"
+      }
+    ]
+  }
+}

@@ -1,0 +1,90 @@
+{
+  "type": "runbook",
+  "name": "Test Schleife",
+  "description": "Ein Request dreimal. Nach dem Lauf steht in der Zeitleiste dreimal „Status“ und viermal „Schleife“ — drei Durchgänge und die Entscheidung, dass Schluss ist. Der Zähler „male“ am Knoten sagt, wie oft; er darf auch aus dem Lauf kommen.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "kind": "start",
+        "x": 60,
+        "y": 48
+      },
+      {
+        "id": "schleife",
+        "kind": "loop",
+        "name": "Loop",
+        "comment": "Die Kante von „Status“ zurück auf diesen Knoten ist die Schleife. Ohne sie liefe der Request einmal.",
+        "vars": {
+          "male": "$random.body"
+        },
+        "data": {
+          "times": "3"
+        },
+        "x": 420,
+        "y": 48
+      },
+      {
+        "id": "status",
+        "request": "requests/laendlekasse/status.json",
+        "comment": "Läuft je Durchgang einmal. In der Zeitleiste steht er deshalb dreimal.",
+        "vars": {
+          "base_url": "$env.body.base_url",
+          "token": "$env.body.token"
+        },
+        "x": 420,
+        "y": 204
+      },
+      {
+        "id": "notiz",
+        "kind": "log",
+        "name": "Log",
+        "vars": {
+          "input": "$schleife.body.index"
+        },
+        "data": {
+          "label": "Durchgang",
+          "text": "Durchgang {{input}}"
+        },
+        "flow": true,
+        "x": 768,
+        "y": 72
+      },
+      {
+        "id": "env",
+        "kind": "env",
+        "x": 60,
+        "y": 336
+      },
+      {
+        "id": "random",
+        "kind": "random",
+        "data": {
+          "min": "1",
+          "max": "3",
+          "mode": "ganzzahl"
+        },
+        "x": 60,
+        "y": 168
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "schleife"
+      },
+      {
+        "from": "schleife.each",
+        "to": "status"
+      },
+      {
+        "from": "status.success",
+        "to": "schleife"
+      },
+      {
+        "from": "schleife.done",
+        "to": "notiz"
+      }
+    ]
+  }
+}
