@@ -1,0 +1,175 @@
+{
+  "type": "runbook",
+  "name": "Testing",
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "kind": "start",
+        "x": -36,
+        "y": 60
+      },
+      {
+        "id": "log-2",
+        "kind": "log",
+        "vars": {
+          "input": "$dateformat.body"
+        },
+        "data": {
+          "label": "Datum",
+          "text": "Es ist der {{input}}"
+        },
+        "group": "gruppe",
+        "flow": true,
+        "x": 684,
+        "y": 60
+      },
+      {
+        "id": "time",
+        "kind": "time",
+        "data": {
+          "at": "",
+          "shift": ""
+        },
+        "group": "gruppe",
+        "x": 684,
+        "y": 252
+      },
+      {
+        "id": "dateformat",
+        "kind": "dateformat",
+        "vars": {
+          "input": "$time.body.iso"
+        },
+        "data": {
+          "format": "DD.MM.YYYY HH:mm",
+          "zone": ""
+        },
+        "group": "gruppe",
+        "x": 684,
+        "y": 168
+      },
+      {
+        "id": "start-2",
+        "kind": "start",
+        "x": -36,
+        "y": 168
+      },
+      {
+        "id": "fork",
+        "kind": "fork",
+        "flowOuts": [
+          "c"
+        ],
+        "x": 300,
+        "y": 132
+      },
+      {
+        "id": "pass",
+        "kind": "pass",
+        "data": {
+          "label": ""
+        },
+        "x": 684,
+        "y": 408
+      },
+      {
+        "id": "pass-2",
+        "kind": "pass",
+        "data": {
+          "label": ""
+        },
+        "x": 684,
+        "y": 516
+      },
+      {
+        "id": "fork-2",
+        "kind": "fork",
+        "x": 1044,
+        "y": 408
+      },
+      {
+        "id": "pass-3",
+        "kind": "pass",
+        "data": {
+          "label": ""
+        },
+        "x": 1392,
+        "y": 360
+      },
+      {
+        "id": "pass-4",
+        "kind": "pass",
+        "data": {
+          "label": ""
+        },
+        "x": 1404,
+        "y": 492
+      },
+      {
+        "id": "rejoin",
+        "kind": "rejoin",
+        "runIns": [
+          "c"
+        ],
+        "x": 1848,
+        "y": 60
+      },
+      {
+        "id": "pass-5",
+        "kind": "pass",
+        "data": {
+          "label": ""
+        },
+        "x": 2184,
+        "y": 60
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "fork"
+      },
+      {
+        "from": "fork.a",
+        "to": "log-2"
+      },
+      {
+        "from": "fork.b",
+        "to": "pass"
+      },
+      {
+        "from": "fork.c",
+        "to": "pass-2"
+      },
+      {
+        "from": "pass",
+        "to": "fork-2"
+      },
+      {
+        "from": "fork-2.a",
+        "to": "pass-3"
+      },
+      {
+        "from": "fork-2.b",
+        "to": "pass-4"
+      },
+      {
+        "from": "log-2",
+        "to": "rejoin.a"
+      },
+      {
+        "from": "pass-3",
+        "to": "rejoin.b"
+      },
+      {
+        "from": "pass-4",
+        "to": "rejoin.c"
+      },
+      {
+        "from": "rejoin",
+        "to": "pass-5"
+      }
+    ]
+  }
+}

@@ -6,19 +6,20 @@
       {
         "id": "start",
         "kind": "start",
-        "x": -72,
-        "y": 36
+        "x": -492,
+        "y": 24
       },
       {
         "id": "produkte",
         "request": "requests/laendlekasse/produkte.json",
+        "comment": "yarrack",
         "vars": {
           "base_url": "$env.body.base_url",
           "token": "$env.body.token"
         },
         "group": "GetProducts",
-        "x": 420,
-        "y": -48
+        "x": 408,
+        "y": -108
       },
       {
         "id": "produkt",
@@ -67,8 +68,8 @@
           "path": "data"
         },
         "group": "GetProducts",
-        "x": 420,
-        "y": 204
+        "x": 408,
+        "y": 168
       },
       {
         "id": "sample",
@@ -77,8 +78,8 @@
           "list": "$extract.body"
         },
         "group": "GetProducts",
-        "x": 420,
-        "y": 312
+        "x": 408,
+        "y": 252
       },
       {
         "id": "extract-3",
@@ -90,14 +91,14 @@
           "path": "id"
         },
         "group": "GetProducts",
-        "x": 420,
-        "y": 420
+        "x": 408,
+        "y": 360
       },
       {
         "id": "env",
         "kind": "env",
-        "x": -72,
-        "y": 132
+        "x": -492,
+        "y": 144
       },
       {
         "id": "log",
@@ -106,7 +107,8 @@
           "input": "$template.body"
         },
         "data": {
-          "label": ""
+          "label": "Ausgelesenes Produkt",
+          "text": ""
         },
         "group": "gruppe",
         "x": 1332,
@@ -116,29 +118,60 @@
         "id": "export",
         "kind": "export",
         "vars": {
-          "input": "$produkt.body"
+          "input": "$log.body"
         },
         "data": {
           "path": "exports/run.txt",
-          "format": "text"
+          "format": "text",
+          "mode": "ersetzen",
+          "text": ""
         },
         "group": "gruppe",
         "x": 1332,
         "y": -36
+      },
+      {
+        "id": "log-2",
+        "kind": "log",
+        "data": {
+          "label": "Ende",
+          "text": "Run Fertig"
+        },
+        "flow": true,
+        "x": 1668,
+        "y": 0
+      },
+      {
+        "id": "status",
+        "request": "requests/laendlekasse/status.json",
+        "vars": {
+          "base_url": "$env.body.base_url",
+          "token": "$env.body.token"
+        },
+        "x": -12,
+        "y": -192
       }
     ],
     "edges": [
       {
+        "from": "produkt",
+        "to": "export"
+      },
+      {
+        "from": "export.success",
+        "to": "log-2"
+      },
+      {
         "from": "start",
+        "to": "status"
+      },
+      {
+        "from": "status.success",
         "to": "produkte"
       },
       {
         "from": "produkte.success",
         "to": "produkt"
-      },
-      {
-        "from": "produkt",
-        "to": "export"
       }
     ]
   },
