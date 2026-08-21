@@ -1,0 +1,141 @@
+{
+  "type": "runbook",
+  "name": "Test URL kodieren",
+  "description": "Die Gegenrichtung zu „URL zerlegen“ — und ein Weg hin und zurück, der unterwegs die Form nicht ändert.\n\n**Kodieren**: ein Suchbegriff mit Leerzeichen, Kaufmanns-Und und Schrägstrich wird so geschrieben, dass er in eine Adresse passt. Ein Leerzeichen wird `%20` und nicht `+` — das heisst nur in einem Formular-Rumpf „Leerzeichen“, in einem Pfad ist es ein Pluszeichen.\n\n**Query**: aus einem Objekt wird `name=wert&…`, und eine Liste als Wert wird zu mehreren Einträgen mit demselben Namen. Unten wird genau dieser String wieder zerlegt — und `tag` kommt als Liste zurück, so wie er hineinging.\n\n**Decode** liest einen Wert aus einer Antwort zurück. Ohne Fragezeichen davor baut sich die fertige Adresse aus Vorlage und Query-String zusammen.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "kind": "start",
+        "x": 60,
+        "y": 48
+      },
+      {
+        "id": "suche",
+        "kind": "string",
+        "name": "Ein Suchbegriff",
+        "data": {
+          "value": "birnen & äpfel/kg"
+        },
+        "x": 60,
+        "y": 264
+      },
+      {
+        "id": "kodiert",
+        "kind": "urlencode",
+        "name": "Kodiert",
+        "comment": "Auch der Schrägstrich: kodiert wird ein Teil, und darin ist er ein Zeichen und kein Trenner.",
+        "vars": {
+          "input": "$suche.body"
+        },
+        "x": 420,
+        "y": 264
+      },
+      {
+        "id": "zurueck",
+        "kind": "urlencode",
+        "name": "Wieder gelesen",
+        "comment": "Dieselbe Art in die Gegenrichtung — heraus kommt, was hineinging.",
+        "vars": {
+          "input": "$kodiert.body"
+        },
+        "data": {
+          "mode": "decode"
+        },
+        "x": 768,
+        "y": 288
+      },
+      {
+        "id": "felder",
+        "kind": "json",
+        "name": "Was gefragt wird",
+        "comment": "„tag“ trägt eine Liste, „leer“ trägt nichts — beides kommt gleich unten heraus.",
+        "data": {
+          "value": "{\"q\": \"birnen & äpfel\", \"seite\": 2, \"tag\": [\"neu\", \"eilig\"], \"leer\": null}"
+        },
+        "x": 60,
+        "y": 456
+      },
+      {
+        "id": "query",
+        "kind": "urlencode",
+        "name": "Als Query-String",
+        "comment": "Ohne Fragezeichen davor: wo er hingehört, weiss der, der ihn anhängt. „leer“ fällt weg — ein &leer= behauptete einen leeren Wert.",
+        "vars": {
+          "input": "$felder.body"
+        },
+        "data": {
+          "mode": "query"
+        },
+        "x": 420,
+        "y": 456
+      },
+      {
+        "id": "adresse",
+        "kind": "template",
+        "name": "Die fertige Adresse",
+        "vars": {
+          "query": "$query.body"
+        },
+        "data": {
+          "text": "https://api.test/v2/waren?{{query}}"
+        },
+        "x": 768,
+        "y": 456
+      },
+      {
+        "id": "wieder_zerlegt",
+        "kind": "parseurl",
+        "name": "Und wieder zerlegt",
+        "comment": "Der Weg zurück: „tag“ kommt als Liste heraus, so wie es hineinging.",
+        "vars": {
+          "input": "$adresse.body"
+        },
+        "x": 1116,
+        "y": 456
+      },
+      {
+        "id": "notiz",
+        "kind": "log",
+        "name": "Log",
+        "vars": {
+          "input": "$adresse.body"
+        },
+        "data": {
+          "label": "Adresse"
+        },
+        "flow": true,
+        "x": 420,
+        "y": 48
+      },
+      {
+        "id": "ende",
+        "kind": "end",
+        "name": "Ende",
+        "vars": {
+          "kodiert": "$kodiert.body",
+          "wieder_gelesen": "$zurueck.body",
+          "query": "$query.body",
+          "adresse": "$adresse.body",
+          "tags_zurueck": "$wieder_zerlegt.body.query.tag",
+          "suche_zurueck": "$wieder_zerlegt.body.query.q"
+        },
+        "data": {
+          "label": "Hin und zurück, gleiche Form"
+        },
+        "x": 768,
+        "y": 48
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "notiz"
+      },
+      {
+        "from": "notiz",
+        "to": "ende"
+      }
+    ]
+  }
+}

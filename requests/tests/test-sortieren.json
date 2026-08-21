@@ -1,0 +1,135 @@
+{
+  "type": "runbook",
+  "name": "Test Sortieren",
+  "description": "Dieselbe Liste dreimal sortiert. Nach dem Lauf steht am Log „Zwetschgen“ — die teuerste Ware, also das erste Element der absteigend sortierten Liste.\n\nZu sehen ist dabei dreierlei: „Birnen“ hat keinen Preis und steht deshalb am Ende, auch absteigend; nach Namen kommen die „Äpfel“ zuerst, obwohl das Ä nach Codepunkten hinter allem stünde; und die Kennungen in Textform stehen als 9, 10, 100 da und nicht als 10, 100, 9.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "kind": "start",
+        "x": 48,
+        "y": 48
+      },
+      {
+        "id": "waren",
+        "kind": "json",
+        "name": "Vier Waren",
+        "comment": "„Birnen“ hat keinen Preis — das ist der Fall, um den es geht.",
+        "data": {
+          "value": "[{\"name\": \"Zwetschgen\", \"preis\": 4.5}, {\"name\": \"Äpfel\", \"preis\": 2}, {\"name\": \"Birnen\"}, {\"name\": \"Kirschen\", \"preis\": 3.8}]"
+        },
+        "x": 48,
+        "y": 192
+      },
+      {
+        "id": "nach_preis",
+        "kind": "sort",
+        "name": "Teuerste zuerst",
+        "comment": "Absteigend nach Preis. Was keinen hat, steht trotzdem am Ende: „nichts“ ist kein grosser Wert.",
+        "vars": {
+          "list": "$waren.body"
+        },
+        "data": {
+          "path": "preis",
+          "order": "ab"
+        },
+        "x": 48,
+        "y": 300
+      },
+      {
+        "id": "teuerste",
+        "kind": "extract",
+        "name": "Die teuerste",
+        "comment": "Wonach sortiert wurde, beantwortet das erste Element — dafür ist das Sortieren da.",
+        "vars": {
+          "input": "$nach_preis.body"
+        },
+        "data": {
+          "path": "0.name"
+        },
+        "x": 348,
+        "y": 300
+      },
+      {
+        "id": "nach_name",
+        "kind": "sort",
+        "name": "Nach Namen",
+        "comment": "Text nach der Sortierung der Sprache: „Äpfel“ steht vorn, nicht ganz hinten.",
+        "vars": {
+          "list": "$waren.body"
+        },
+        "data": {
+          "path": "name",
+          "order": "auf"
+        },
+        "x": 48,
+        "y": 408
+      },
+      {
+        "id": "kennungen",
+        "kind": "json",
+        "name": "Kennungen als Text",
+        "data": {
+          "value": "[\"10\", \"9\", \"100\"]"
+        },
+        "x": 48,
+        "y": 540
+      },
+      {
+        "id": "zahlen",
+        "kind": "sort",
+        "name": "Ohne Feld",
+        "comment": "Kein Feld: sortiert werden die Elemente selbst. Als Text wäre „10“ kleiner als „9“ — hier nicht.",
+        "vars": {
+          "list": "$kennungen.body"
+        },
+        "data": {
+          "order": "auf"
+        },
+        "x": 48,
+        "y": 624
+      },
+      {
+        "id": "notiz",
+        "kind": "log",
+        "name": "Log",
+        "comment": "Im Ablauf: er schreibt, wenn der Lauf vorbeikommt — und zieht dabei die Kette links von ihm.",
+        "vars": {
+          "input": "$teuerste.body"
+        },
+        "data": {
+          "label": "Die teuerste"
+        },
+        "flow": true,
+        "x": 420,
+        "y": 48
+      },
+      {
+        "id": "ende",
+        "kind": "end",
+        "name": "Ende",
+        "vars": {
+          "teuerste": "$teuerste.body",
+          "nach_preis": "$nach_preis.body",
+          "nach_name": "$nach_name.body",
+          "kennungen": "$zahlen.body"
+        },
+        "data": {
+          "label": "Dreimal dieselbe Liste"
+        },
+        "x": 852,
+        "y": 48
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "notiz"
+      },
+      {
+        "from": "notiz",
+        "to": "ende"
+      }
+    ]
+  }
+}

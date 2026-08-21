@@ -1,0 +1,176 @@
+{
+  "type": "runbook",
+  "name": "Test Kleinster und Grösster",
+  "description": "Drei Listen, dreimal dieselbe Frage.\n\nÜber **Zahlen** kommt heraus, was man erwartet: die schnellste Antwort mit 42 ms, die langsamste mit 1200. Über **Zeitstempeln** findet „kleinster“ den frühesten — verglichen wird wie beim Sortieren, und ISO-Text sortiert sich von selbst richtig. Über **Objekten** zählt das Feld: der niedrigste Preis ist 2, und die Ware ohne Preis zählt nicht mit, denn „nichts“ ist kein kleiner Wert.\n\nZurück kommt jeweils der **Wert**, nicht das Element, das ihn trägt. Wer den billigsten Artikel selbst will, sortiert und nimmt das erste — das steht rechts daneben und gibt „Birnen“.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "kind": "start",
+        "x": 60,
+        "y": 48
+      },
+      {
+        "id": "zeiten",
+        "kind": "json",
+        "name": "Antwortzeiten",
+        "data": {
+          "value": "[120, 42, 1200, 87]"
+        },
+        "x": 60,
+        "y": 264
+      },
+      {
+        "id": "schnellste",
+        "kind": "min",
+        "name": "Schnellste",
+        "comment": "Ohne Feld: die Elemente selbst.",
+        "vars": {
+          "list": "$zeiten.body"
+        },
+        "x": 420,
+        "y": 216
+      },
+      {
+        "id": "langsamste",
+        "kind": "max",
+        "name": "Langsamste",
+        "comment": "Die Zahl, an der ein Zeitlimit hängt — „keiner über einer Sekunde“ ist danach eine Bedingung und keine Schleife.",
+        "vars": {
+          "list": "$zeiten.body"
+        },
+        "x": 420,
+        "y": 348
+      },
+      {
+        "id": "stempel",
+        "kind": "list",
+        "name": "Drei Zeitstempel",
+        "comment": "Als Text — und trotzdem richtig verglichen, weil ISO sich von selbst sortiert.",
+        "data": {
+          "items": "2026-08-21T09:00:00Z\n2026-08-01T23:59:00Z\n2026-08-21T08:15:00Z"
+        },
+        "x": 60,
+        "y": 480
+      },
+      {
+        "id": "frueheste",
+        "kind": "min",
+        "name": "Früheste",
+        "vars": {
+          "list": "$stempel.body"
+        },
+        "x": 420,
+        "y": 480
+      },
+      {
+        "id": "waren",
+        "kind": "json",
+        "name": "Vier Waren",
+        "comment": "„Kirschen“ haben keinen Preis — sie zählen bei beiden nicht mit.",
+        "data": {
+          "value": "[{\"name\": \"Zwetschgen\", \"preis\": 4.5}, {\"name\": \"Birnen\", \"preis\": 2}, {\"name\": \"Kirschen\"}, {\"name\": \"Äpfel\", \"preis\": 3.8}]"
+        },
+        "x": 60,
+        "y": 636
+      },
+      {
+        "id": "billigster",
+        "kind": "min",
+        "name": "Niedrigster Preis",
+        "vars": {
+          "list": "$waren.body"
+        },
+        "data": {
+          "path": "preis"
+        },
+        "x": 420,
+        "y": 612
+      },
+      {
+        "id": "teuerster",
+        "kind": "max",
+        "name": "Höchster Preis",
+        "vars": {
+          "list": "$waren.body"
+        },
+        "data": {
+          "path": "preis"
+        },
+        "x": 420,
+        "y": 744
+      },
+      {
+        "id": "geordnet",
+        "kind": "sort",
+        "name": "Aufsteigend",
+        "comment": "Der andere Weg: wer nicht den Wert, sondern die Ware will, sortiert und nimmt das erste.",
+        "vars": {
+          "list": "$waren.body"
+        },
+        "data": {
+          "path": "preis",
+          "order": "auf"
+        },
+        "x": 768,
+        "y": 672
+      },
+      {
+        "id": "billigste_ware",
+        "kind": "extract",
+        "name": "Die billigste Ware",
+        "vars": {
+          "input": "$geordnet.body"
+        },
+        "data": {
+          "path": "0.name"
+        },
+        "x": 1116,
+        "y": 672
+      },
+      {
+        "id": "notiz",
+        "kind": "log",
+        "name": "Log",
+        "vars": {
+          "schnellste": "$schnellste.body.value",
+          "langsamste": "$langsamste.body.value"
+        },
+        "data": {
+          "label": "Antwortzeiten"
+        },
+        "flow": true,
+        "x": 420,
+        "y": 48
+      },
+      {
+        "id": "ende",
+        "kind": "end",
+        "name": "Ende",
+        "vars": {
+          "schnellste_ms": "$schnellste.body.value",
+          "langsamste_ms": "$langsamste.body.value",
+          "frueheste": "$frueheste.body.value",
+          "niedrigster_preis": "$billigster.body.value",
+          "hoechster_preis": "$teuerster.body.value",
+          "billigste_ware": "$billigste_ware.body"
+        },
+        "data": {
+          "label": "Sechs Werte aus drei Listen"
+        },
+        "x": 768,
+        "y": 48
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "notiz"
+      },
+      {
+        "from": "notiz",
+        "to": "ende"
+      }
+    ]
+  }
+}

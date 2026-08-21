@@ -1,0 +1,151 @@
+{
+  "type": "runbook",
+  "name": "Test Sammler",
+  "description": "Das Gegenstück zu der Regel, an der der ganze Läufer hängt: **die Ergebnisse halten je Knoten den letzten Wert.** Für „$req.body im zweiten Durchgang meint den zweiten“ ist das richtig — wer aber alle drei will, braucht einen Ort, an dem sie stehen bleiben.\n\nDrei Bestellungen gehen durch „Für jedes“; die Vorlage baut je Durchgang eine Zeile, und der **Sammler** häuft sie an. Nach dem Lauf steht an ihm die Liste mit drei Einträgen — am Ende zusammengesetzt zu einem Text. Ohne ihn stünde dort nur die letzte Zeile.\n\n**Ein Lauf, eine Liste.** Gesammelt wird im Lauf und nicht am Tab: beim Fortsetzen ab einem Knoten stünde sonst noch die Liste von vorhin da. Der Sammler läuft bei *jeder* Ankunft wieder an — ein Knoten, der einmal schliesst, sammelte ab dem zweiten Durchgang nichts mehr.\n\nIm Reiter **„messpunkte“** steht der Log jetzt dreimal, je Vorbeikommen einmal mit eigener Uhrzeit: die Einträge standen immer schon im Journal, nur las die Liste die Ergebnisse.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "kind": "start",
+        "x": 60,
+        "y": 48
+      },
+      {
+        "id": "antwort",
+        "kind": "json",
+        "name": "Drei Bestellungen",
+        "data": {
+          "value": "[{\"nr\": 11, \"betrag\": 250}, {\"nr\": 12, \"betrag\": 40}, {\"nr\": 13, \"betrag\": 99}]"
+        },
+        "x": 60,
+        "y": 240
+      },
+      {
+        "id": "jede",
+        "kind": "foreach",
+        "name": "Für jede Bestellung",
+        "vars": {
+          "list": "$antwort.body"
+        },
+        "x": 408,
+        "y": 156
+      },
+      {
+        "id": "zeile",
+        "kind": "template",
+        "name": "Eine Zeile daraus",
+        "vars": {
+          "nr": "$jede.body.each.nr",
+          "betrag": "$jede.body.each.betrag"
+        },
+        "data": {
+          "text": "Bestellung {{nr}} über {{betrag}}"
+        },
+        "x": 768,
+        "y": 336
+      },
+      {
+        "id": "notiz",
+        "kind": "log",
+        "name": "Je Durchgang eine Zeile",
+        "comment": "Im Ablauf: er schreibt bei jedem Vorbeikommen — und steht im Reiter „messpunkte“ jetzt auch dreimal.",
+        "vars": {
+          "input": "$zeile.body"
+        },
+        "data": {
+          "label": "Bestellung"
+        },
+        "flow": true,
+        "x": 768,
+        "y": 168
+      },
+      {
+        "id": "sammler",
+        "kind": "collect",
+        "name": "Alle Zeilen",
+        "comment": "Häuft an, was durchläuft. Er läuft bei jeder Ankunft wieder an — einmal zu schliessen hiesse, ab dem zweiten Durchgang nichts mehr zu sammeln.",
+        "vars": {
+          "input": "$zeile.body"
+        },
+        "x": 1116,
+        "y": 168
+      },
+      {
+        "id": "betraege",
+        "kind": "collect",
+        "name": "Alle Beträge",
+        "comment": "Derselbe Knoten, anderer Eingang: danach lässt sich über das Gesammelte rechnen.",
+        "vars": {
+          "input": "$jede.body.each.betrag"
+        },
+        "x": 1116,
+        "y": 336
+      },
+      {
+        "id": "summe",
+        "kind": "sum",
+        "name": "Zusammen",
+        "comment": "Über die gesammelte Liste — das geht erst, seit sie stehen bleibt.",
+        "vars": {
+          "list": "$betraege.body.items"
+        },
+        "x": 1464,
+        "y": 336
+      },
+      {
+        "id": "bericht",
+        "kind": "join",
+        "name": "Als Bericht",
+        "vars": {
+          "list": "$sammler.body.items"
+        },
+        "data": {
+          "separator": "\n"
+        },
+        "x": 1464,
+        "y": 168
+      },
+      {
+        "id": "ende",
+        "kind": "end",
+        "name": "Ende",
+        "vars": {
+          "bericht": "$bericht.body",
+          "wie_viele": "$sammler.body.count",
+          "summe": "$summe.body"
+        },
+        "data": {
+          "label": "Drei Zeilen, eine Summe"
+        },
+        "x": 1812,
+        "y": 48
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "jede"
+      },
+      {
+        "from": "jede.each",
+        "to": "notiz"
+      },
+      {
+        "from": "notiz",
+        "to": "sammler"
+      },
+      {
+        "from": "sammler",
+        "to": "betraege"
+      },
+      {
+        "from": "betraege",
+        "to": "jede"
+      },
+      {
+        "from": "jede.done",
+        "to": "ende"
+      }
+    ]
+  }
+}

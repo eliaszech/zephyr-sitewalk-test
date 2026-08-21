@@ -1,0 +1,232 @@
+{
+  "type": "runbook",
+  "name": "Test Seed und JSON parse",
+  "description": "**Der Würfel, festgezurrt.** Zufallszahl, Kennung, Testdaten und Zeit hängen alle an ihm — steht am Seed-Knoten ein Wert, gibt derselbe Graph zweimal dasselbe. Das ist der Unterschied zwischen „der Test schlägt fehl“ und „der Test schlägt manchmal fehl“.\n\n**Die Uhr bleibt davon unberührt.** Ein festgezurrter Würfel hält den Zufall an, nicht das Datum — wer eine Zufallszahl festhält, erwartet nicht, dass sein Lauf plötzlich im Januar spielt. Einen festen Augenblick stellt man am Zeit-Knoten ein, der hat sein eigenes Feld dafür; hier steht deshalb einer, damit beides nebeneinander zu sehen ist. Im Würfel darf auch ein Wort stehen, „abnahme-2026“ etwa. Zum Ausprobieren: den Knoten **stilllegen**, und alles würfelt wieder frisch.\n\n**Ein Würfel je Wert**: unten hängt an zwei Knoten ein „würfel“-Eingang, und dort liegt eine Kundennummer. Damit würfeln sie nicht mehr vom Lauf, sondern von *diesem Wert* — dieselbe Nummer gibt immer denselben Betrag und dieselbe Adresse, auch in einem Lauf, der sonst frei würfelt. Daneben steht dasselbe als Feld im Inspektor, für den Fall, dass der Würfel nicht aus dem Lauf kommt; verdrahtet schlägt eingetippt. Für den ganzen Graphen gibt es stattdessen den Seed-Knoten — der hält auch die Uhr an, was diese hier nicht tun.\n\n**JSON parse** daneben ist für den Rumpf, der als Text ankommt: manche Dienste schicken `text/plain`, und dann ist die Antwort eine Zeichenkette statt eines Objekts. Was schon ein Wert ist, geht unverändert durch — ob Text oder Objekt, entscheidet der Content-Type, und der Knoten soll auf beides dieselbe Antwort geben.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "kind": "start",
+        "x": 60,
+        "y": 48
+      },
+      {
+        "id": "wuerfel",
+        "kind": "seed",
+        "name": "Der Würfel",
+        "comment": "Was hier steht, hält den Zufall fest — eine Zahl, ein Zeitpunkt oder ein Wort. Die Uhr bleibt davon unberührt. Stilllegen macht den Lauf wieder zufällig.",
+        "data": {
+          "value": "2026-01-01T00:00:00Z"
+        },
+        "x": 60,
+        "y": 264
+      },
+      {
+        "id": "zufall",
+        "kind": "random",
+        "name": "Eine Zufallszahl",
+        "comment": "Zweimal laufen lassen gibt zweimal dieselbe — solange der Würfel steht.",
+        "data": {
+          "min": "1",
+          "max": "1000000",
+          "mode": "ganzzahl"
+        },
+        "x": 420,
+        "y": 192
+      },
+      {
+        "id": "kennung",
+        "kind": "uuid",
+        "name": "Eine Kennung",
+        "vars": {
+          "seed": "$wuerfel.body"
+        },
+        "x": 420,
+        "y": 348
+      },
+      {
+        "id": "jetzt",
+        "kind": "time",
+        "name": "Der Augenblick",
+        "data": {
+          "at": "2026-01-01T00:00:00Z"
+        },
+        "comment": "Ein fester Augenblick — aber aus dem eigenen Feld und nicht vom Würfel: dafür ist das Feld „zeitpunkt“ da.",
+        "x": 420,
+        "y": 432
+      },
+      {
+        "id": "nutzer",
+        "kind": "faker",
+        "name": "Ein Testnutzer",
+        "data": {
+          "form": "email"
+        },
+        "x": 420,
+        "y": 588
+      },
+      {
+        "id": "kundennummer",
+        "kind": "string",
+        "name": "Eine Kundennummer",
+        "comment": "Steht für das, was sonst aus einer Antwort käme.",
+        "data": {
+          "value": "kunde-4711"
+        },
+        "x": 60,
+        "y": 900
+      },
+      {
+        "id": "je_kunde",
+        "kind": "random",
+        "name": "Betrag je Kunde",
+        "comment": "Würfelt von der Nummer und nicht vom Lauf: dieselbe Nummer gibt immer denselben Betrag — reproduzierbar je Datensatz statt je Lauf.",
+        "vars": {
+          "seed": "$kundennummer.body"
+        },
+        "data": {
+          "min": "10",
+          "max": "500",
+          "mode": "ganzzahl"
+        },
+        "x": 420,
+        "y": 852
+      },
+      {
+        "id": "adresse_je_kunde",
+        "kind": "faker",
+        "name": "Adresse je Kunde",
+        "comment": "Dasselbe mit Testdaten: derselbe Kunde bekommt immer dieselbe Adresse.",
+        "vars": {
+          "seed": "$kundennummer.body"
+        },
+        "data": {
+          "form": "adresse"
+        },
+        "x": 420,
+        "y": 1020
+      },
+      {
+        "id": "geschrieben",
+        "kind": "random",
+        "name": "Würfel im Feld",
+        "comment": "Ohne Leitung: der Würfel steht im Inspektor und damit auch am Anschluss. Auch das gibt immer dasselbe — ein Eingang würde es schlagen.",
+        "data": {
+          "min": "10",
+          "max": "500",
+          "mode": "ganzzahl",
+          "seed": "abnahme-2026"
+        },
+        "x": 420,
+        "y": 1140
+      },
+      {
+        "id": "als_text",
+        "kind": "string",
+        "name": "Rumpf als text/plain",
+        "comment": "So kommt er von manchen Diensten zurück — eine Zeichenkette, kein Objekt.",
+        "data": {
+          "value": "{\"bestellung\": 4711, \"posten\": [{\"artikel\": \"Birnen\", \"betrag\": 4.5}], \"offen\": true}"
+        },
+        "x": 60,
+        "y": 696
+      },
+      {
+        "id": "gelesen",
+        "kind": "jsonparse",
+        "name": "Als Wert",
+        "comment": "Danach hat er Felder, an die man eine Leitung hängen kann.",
+        "vars": {
+          "text": "$als_text.body"
+        },
+        "x": 420,
+        "y": 696
+      },
+      {
+        "id": "betrag",
+        "kind": "extract",
+        "name": "Der erste Betrag",
+        "vars": {
+          "input": "$gelesen.body"
+        },
+        "data": {
+          "path": "posten.0.betrag"
+        },
+        "x": 768,
+        "y": 696
+      },
+      {
+        "id": "schon_wert",
+        "kind": "jsonparse",
+        "name": "Schon ein Wert",
+        "comment": "Hier liegt ein Objekt an — es geht unverändert durch, statt sich zu beschweren.",
+        "vars": {
+          "text": "$gelesen.body"
+        },
+        "x": 768,
+        "y": 816
+      },
+      {
+        "id": "zeile",
+        "kind": "template",
+        "name": "Als Satz",
+        "vars": {
+          "wuerfel": "$kennung.body",
+          "zufall": "$zufall.body",
+          "jetzt": "$jetzt.body.iso"
+        },
+        "data": {
+          "text": "Würfel {{wuerfel}} — Zufall {{zufall}}, Uhr {{jetzt}}"
+        },
+        "x": 768,
+        "y": 336
+      },
+      {
+        "id": "notiz",
+        "kind": "log",
+        "name": "Log",
+        "vars": {
+          "input": "$zeile.body"
+        },
+        "data": {
+          "label": "Würfel"
+        },
+        "flow": true,
+        "x": 420,
+        "y": 48
+      },
+      {
+        "id": "ende",
+        "kind": "end",
+        "name": "Ende",
+        "vars": {
+          "wuerfel": "$wuerfel.body",
+          "zufall": "$zufall.body",
+          "kennung": "$kennung.body",
+          "jetzt": "$jetzt.body.iso",
+          "testnutzer": "$nutzer.body",
+          "betrag": "$betrag.body",
+          "schon_wert": "$schon_wert.body.bestellung",
+          "betrag_je_kunde": "$je_kunde.body",
+          "adresse_je_kunde": "$adresse_je_kunde.body",
+          "wuerfel_im_feld": "$geschrieben.body"
+        },
+        "data": {
+          "label": "Zweimal derselbe Lauf"
+        },
+        "x": 768,
+        "y": 12
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "notiz"
+      },
+      {
+        "from": "notiz",
+        "to": "ende"
+      }
+    ]
+  }
+}

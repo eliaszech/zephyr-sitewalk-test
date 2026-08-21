@@ -1,0 +1,167 @@
+{
+  "type": "runbook",
+  "name": "Test Vergleich",
+  "description": "Zwei Antworten gegeneinander — die Frage eines Regressionslaufs: gibt Version zwei dasselbe zurück wie Version eins?\n\nRoh sind es **fünf** Unterschiede, davon zwei, die bei jedem Aufruf anders sind: die Kennung und der Zeitstempel. Mit „ausgenommen: id, updated_at“ bleiben **drei** — und das sind die, um die es geht: der Status ist ein anderer, die Rolle fehlt in Version zwei, der Kanal ist neu dazugekommen. Jeder mit seinem Pfad, denn ein blosses „ungleich“ schickt einen zurück in die Antwort, um von Hand zu suchen.\n\nDarunter der Fall, den man einmal falsch erwartet: zwei Listen mit denselben Elementen in anderer Reihenfolge sind **nicht** gleich — verglichen wird Stelle für Stelle. Wer die Menge meint, sortiert vorher, und dann sind sie es.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "kind": "start",
+        "x": 60,
+        "y": 48
+      },
+      {
+        "id": "v1",
+        "kind": "json",
+        "name": "Version 1",
+        "data": {
+          "value": "{\"id\": 1, \"updated_at\": \"2026-08-01T10:00:00Z\", \"status\": \"offen\", \"kunde\": {\"name\": \"ada\", \"rolle\": \"gast\"}, \"betrag\": 250}"
+        },
+        "x": 60,
+        "y": 264
+      },
+      {
+        "id": "v2",
+        "kind": "json",
+        "name": "Version 2",
+        "comment": "Anderer Status, keine Rolle mehr, dafür ein Kanal — und wie immer eine neue Kennung und ein neuer Zeitstempel.",
+        "data": {
+          "value": "{\"id\": 7, \"updated_at\": \"2026-08-21T09:30:00Z\", \"status\": \"bezahlt\", \"kunde\": {\"name\": \"ada\"}, \"betrag\": 250, \"kanal\": \"web\"}"
+        },
+        "x": 60,
+        "y": 444
+      },
+      {
+        "id": "roh",
+        "kind": "diff",
+        "name": "Alles zählt",
+        "comment": "Ohne Ausnahmen: fünf Unterschiede, davon zwei, die bei jedem Aufruf anders sind. So sieht ein Regressionstest aus, den niemand mehr anschaut.",
+        "vars": {
+          "a": "$v1.body",
+          "b": "$v2.body"
+        },
+        "x": 420,
+        "y": 264
+      },
+      {
+        "id": "sauber",
+        "kind": "diff",
+        "name": "Ohne Rauschen",
+        "comment": "„id“ und „updated_at“ ohne Punkt: der Name gilt überall, auch in jedem Element einer Liste.",
+        "vars": {
+          "a": "$v1.body",
+          "b": "$v2.body"
+        },
+        "data": {
+          "ignore": "id, updated_at"
+        },
+        "x": 420,
+        "y": 444
+      },
+      {
+        "id": "links",
+        "kind": "list",
+        "name": "Dieselben Elemente",
+        "data": {
+          "items": "birnen\naepfel"
+        },
+        "x": 60,
+        "y": 624
+      },
+      {
+        "id": "rechts",
+        "kind": "list",
+        "name": "In anderer Ordnung",
+        "data": {
+          "items": "aepfel\nbirnen"
+        },
+        "x": 60,
+        "y": 768
+      },
+      {
+        "id": "ungeordnet",
+        "kind": "diff",
+        "name": "Stelle für Stelle",
+        "comment": "Zwei Unterschiede, obwohl dieselben Elemente drinstehen: an Stelle 0 und an Stelle 1 steht je etwas anderes.",
+        "vars": {
+          "a": "$links.body",
+          "b": "$rechts.body"
+        },
+        "x": 420,
+        "y": 696
+      },
+      {
+        "id": "s1",
+        "kind": "sort",
+        "name": "Sortiert",
+        "vars": {
+          "list": "$links.body"
+        },
+        "x": 768,
+        "y": 624
+      },
+      {
+        "id": "s2",
+        "kind": "sort",
+        "name": "Sortiert",
+        "vars": {
+          "list": "$rechts.body"
+        },
+        "x": 768,
+        "y": 768
+      },
+      {
+        "id": "geordnet",
+        "kind": "diff",
+        "name": "Nach dem Sortieren",
+        "comment": "Wer die Menge meint und nicht die Reihenfolge, sortiert vorher — dann sind sie gleich.",
+        "vars": {
+          "a": "$s1.body",
+          "b": "$s2.body"
+        },
+        "x": 1116,
+        "y": 696
+      },
+      {
+        "id": "notiz",
+        "kind": "log",
+        "name": "Log",
+        "vars": {
+          "input": "$sauber.body.changes"
+        },
+        "data": {
+          "label": "Unterschiede"
+        },
+        "flow": true,
+        "x": 420,
+        "y": 48
+      },
+      {
+        "id": "ende",
+        "kind": "end",
+        "name": "Ende",
+        "vars": {
+          "roh": "$roh.body.count",
+          "echte_unterschiede": "$sauber.body.changes",
+          "listen_ungeordnet": "$ungeordnet.body.count",
+          "listen_sortiert": "$geordnet.body.same"
+        },
+        "data": {
+          "label": "Fünf roh, drei echte"
+        },
+        "x": 768,
+        "y": 48
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "notiz"
+      },
+      {
+        "from": "notiz",
+        "to": "ende"
+      }
+    ]
+  }
+}

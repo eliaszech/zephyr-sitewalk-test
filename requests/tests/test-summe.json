@@ -1,0 +1,167 @@
+{
+  "type": "runbook",
+  "name": "Test Summe und Schnitt",
+  "description": "Drei Positionen, zwei Rechnungen — und der Fall, den man einmal falsch erwartet.\n\nDie Summe ist **6.5**: der eine Betrag steht als Text „4.50“ in der Antwort und zählt trotzdem als Zahl. Der Schnitt ist **3.25** und nicht 2.17 — geteilt wird durch die zwei Positionen, die einen Betrag *haben*, nicht durch alle drei. Die Anzahl daneben zeigt die drei, damit man den Unterschied sieht.\n\nDarunter dieselben beiden Knoten über einer **flachen Liste**: ohne Feld zählt das Element selbst — [120, 42, 87] gibt 249 und 83. Das Feld „feld“ ist für Listen von Objekten da, nicht für Listen von Zahlen.\n\nUnten rechts steht mit Absicht ein Fehler: die Summe über den Artikelnamen. Was sich nicht addieren lässt, wird gemeldet und nicht stillschweigend übersprungen — sonst stünde dort eine Summe über einer Teilmenge, die niemand gewählt hat.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "kind": "start",
+        "x": 60,
+        "y": 48
+      },
+      {
+        "id": "positionen",
+        "kind": "json",
+        "name": "Drei Positionen",
+        "comment": "Ein Betrag als Text, einer als Zahl, einer fehlt — so kommen Antworten wirklich zurück.",
+        "data": {
+          "value": "[{\"artikel\": \"Birnen\", \"betrag\": \"4.50\"}, {\"artikel\": \"Äpfel\", \"betrag\": 2}, {\"artikel\": \"Kirschen\"}]"
+        },
+        "x": 60,
+        "y": 288
+      },
+      {
+        "id": "summe",
+        "kind": "sum",
+        "name": "Zu zahlen",
+        "vars": {
+          "list": "$positionen.body"
+        },
+        "data": {
+          "path": "betrag"
+        },
+        "x": 420,
+        "y": 216
+      },
+      {
+        "id": "schnitt",
+        "kind": "average",
+        "name": "Je Position",
+        "comment": "Geteilt durch zwei: die Position ohne Betrag zählt auch im Nenner nicht mit.",
+        "vars": {
+          "list": "$positionen.body"
+        },
+        "data": {
+          "path": "betrag"
+        },
+        "x": 420,
+        "y": 348
+      },
+      {
+        "id": "anzahl",
+        "kind": "count",
+        "name": "So viele sind es",
+        "comment": "Drei — der Unterschied zum Nenner des Schnitts steht damit im Bild.",
+        "vars": {
+          "input": "$positionen.body"
+        },
+        "x": 420,
+        "y": 480
+      },
+      {
+        "id": "zeile",
+        "kind": "template",
+        "name": "Als Satz",
+        "vars": {
+          "summe": "$summe.body",
+          "schnitt": "$schnitt.body",
+          "anzahl": "$anzahl.body"
+        },
+        "data": {
+          "text": "{{anzahl}} Positionen, {{summe}} zusammen, {{schnitt}} im Schnitt"
+        },
+        "x": 768,
+        "y": 348
+      },
+      {
+        "id": "zeiten",
+        "kind": "json",
+        "name": "Antwortzeiten",
+        "comment": "Eine flache Liste — keine Objekte, kein Feld.",
+        "data": {
+          "value": "[120, 42, 87]"
+        },
+        "x": 60,
+        "y": 612
+      },
+      {
+        "id": "gesamt",
+        "kind": "sum",
+        "name": "Zusammen",
+        "comment": "Ohne Feld: gezählt wird das Element selbst.",
+        "vars": {
+          "list": "$zeiten.body"
+        },
+        "x": 420,
+        "y": 612
+      },
+      {
+        "id": "mittel",
+        "kind": "average",
+        "name": "Im Schnitt",
+        "vars": {
+          "list": "$zeiten.body"
+        },
+        "x": 420,
+        "y": 732
+      },
+      {
+        "id": "vergeblich",
+        "kind": "sum",
+        "name": "Namen addieren",
+        "comment": "Absichtlich daneben: „Birnen“ lässt sich nicht addieren, und das sagt der Knoten auch. Er hängt an keinem Ende — der Lauf geht ihn nichts an.",
+        "vars": {
+          "list": "$positionen.body"
+        },
+        "data": {
+          "path": "artikel"
+        },
+        "x": 420,
+        "y": 852
+      },
+      {
+        "id": "notiz",
+        "kind": "log",
+        "name": "Log",
+        "vars": {
+          "input": "$zeile.body"
+        },
+        "data": {
+          "label": "Rechnung"
+        },
+        "flow": true,
+        "x": 420,
+        "y": 48
+      },
+      {
+        "id": "ende",
+        "kind": "end",
+        "name": "Ende",
+        "vars": {
+          "summe": "$summe.body",
+          "schnitt": "$schnitt.body",
+          "positionen": "$anzahl.body",
+          "satz": "$zeile.body",
+          "ms_zusammen": "$gesamt.body",
+          "ms_im_schnitt": "$mittel.body"
+        },
+        "data": {
+          "label": "Sechs fünfzig, drei Positionen"
+        },
+        "x": 768,
+        "y": 48
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "notiz"
+      },
+      {
+        "from": "notiz",
+        "to": "ende"
+      }
+    ]
+  }
+}

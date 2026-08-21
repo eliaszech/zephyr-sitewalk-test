@@ -1,0 +1,171 @@
+{
+  "type": "runbook",
+  "name": "Test Zahlenreihe",
+  "description": "Die Zahlen von … bis … als Liste — für „lege zwanzig an“ und für Seiten, die man durchgeht.\n\n**Beide Grenzen sind eingeschlossen**: „1 bis 5“ meint fünf Seiten. Eine Reihe, die bei vier aufhört, wäre die Zählweise einer Programmiersprache und nicht die eines Menschen.\n\n**Die Richtung ergibt sich aus den Grenzen** — „von 5 bis 1“ zählt abwärts, ganz ohne Minus am Schritt. Und **Kommaschritte schleppen keinen Fehler mit**: jeder Wert wird aus Anfang und Stelle gerechnet statt aufaddiert, sonst stünde in der Liste die bekannte Zahl mit den vielen Dritteln.\n\nDie Grenzen und der Schritt kommen dabei auch **aus einer Antwort** und schlagen dann die Felder — unten zählt eine Reihe in Stufen von 25, weil die Seitengrösse drüben so steht.\n\nRechts kommt die Obergrenze **aus einer Antwort**: `seiten` sagt, wie viele es sind, und die Reihe daneben zählt sie ab. Danach ist „für jede Seite ein Request“ eine Liste und keine Schleife, die mitzählt.\n\nUnten steht mit Absicht ein Fehler: eine Million Zahlen. Eine Reihe wird gerechnet, sooft jemand hinsieht — deshalb meldet sie sich, statt den Editor anzuhalten.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "kind": "start",
+        "x": 60,
+        "y": 48
+      },
+      {
+        "id": "seiten_gesamt",
+        "kind": "json",
+        "name": "Eine Antwort",
+        "comment": "Steht für das, was eine erste Seite mitschickt: wie viele es insgesamt sind.",
+        "data": {
+          "value": "{\"seiten\": 4, \"pro_seite\": 25}"
+        },
+        "x": 60,
+        "y": 264
+      },
+      {
+        "id": "alle_seiten",
+        "kind": "range",
+        "name": "Jede Seite",
+        "comment": "Die Obergrenze kommt vom Eingang und schlägt das Feld — so steht die Zahl einmal in der Antwort und nicht zweimal im Graphen.",
+        "vars": {
+          "to": "$seiten_gesamt.body.seiten"
+        },
+        "data": {
+          "from": "1",
+          "to": "99"
+        },
+        "x": 420,
+        "y": 264
+      },
+      {
+        "id": "adressen",
+        "kind": "map",
+        "name": "Als Adressen",
+        "comment": "Danach ist „für jede Seite ein Request“ eine Liste und keine Schleife, die mitzählt.",
+        "vars": {
+          "list": "$alle_seiten.body"
+        },
+        "data": {
+          "expr": "`/v2/waren?seite=${item}`"
+        },
+        "x": 768,
+        "y": 264
+      },
+      {
+        "id": "zwanzig",
+        "kind": "range",
+        "name": "Zwanzig anlegen",
+        "comment": "Beide Grenzen eingeschlossen: das sind zwanzig Durchgänge, nicht neunzehn.",
+        "data": {
+          "from": "1",
+          "to": "20"
+        },
+        "x": 420,
+        "y": 432
+      },
+      {
+        "id": "wie_viele",
+        "kind": "count",
+        "name": "Wirklich zwanzig?",
+        "vars": {
+          "input": "$zwanzig.body"
+        },
+        "x": 768,
+        "y": 432
+      },
+      {
+        "id": "rueckwaerts",
+        "kind": "range",
+        "name": "Countdown",
+        "comment": "Von 5 bis 1: die Richtung ergibt sich aus den Grenzen, kein Minus am Schritt nötig.",
+        "data": {
+          "from": "5",
+          "to": "1"
+        },
+        "x": 420,
+        "y": 564
+      },
+      {
+        "id": "komma",
+        "kind": "range",
+        "name": "In Vierteln",
+        "comment": "0.25er-Schritte, sauber gerundet — aufaddiert stünde hier 0.30000000000000004.",
+        "data": {
+          "from": "0",
+          "to": "1",
+          "step": "0.25"
+        },
+        "x": 420,
+        "y": 696
+      },
+      {
+        "id": "in_stufen",
+        "kind": "range",
+        "name": "In Stufen",
+        "comment": "Auch der Schritt kommt vom Eingang: die Seitengrösse steht in derselben Antwort wie die Seitenzahl — 0, 25, 50, 75.",
+        "vars": {
+          "step": "$seiten_gesamt.body.pro_seite"
+        },
+        "data": {
+          "from": "0",
+          "to": "75"
+        },
+        "x": 420,
+        "y": 960
+      },
+      {
+        "id": "zu_viel",
+        "kind": "range",
+        "name": "Eine Million",
+        "comment": "Absichtlich daneben: der Knoten meldet sich, statt bei jedem Zeichnen eine Million Zahlen zu bauen. Er hängt an keinem Ende.",
+        "data": {
+          "from": "1",
+          "to": "1000000"
+        },
+        "x": 420,
+        "y": 828
+      },
+      {
+        "id": "notiz",
+        "kind": "log",
+        "name": "Log",
+        "vars": {
+          "input": "$adressen.body.items"
+        },
+        "data": {
+          "label": "Seiten"
+        },
+        "flow": true,
+        "x": 420,
+        "y": 48
+      },
+      {
+        "id": "ende",
+        "kind": "end",
+        "name": "Ende",
+        "vars": {
+          "seiten": "$alle_seiten.body",
+          "adressen": "$adressen.body.items",
+          "zwanzig": "$wie_viele.body",
+          "countdown": "$rueckwaerts.body",
+          "viertel": "$komma.body",
+          "in_stufen": "$in_stufen.body"
+        },
+        "data": {
+          "label": "Vier Reihen, eine Meldung"
+        },
+        "x": 768,
+        "y": 48
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "notiz"
+      },
+      {
+        "from": "notiz",
+        "to": "ende"
+      }
+    ]
+  }
+}

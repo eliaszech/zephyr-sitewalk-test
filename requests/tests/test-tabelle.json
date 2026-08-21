@@ -1,0 +1,130 @@
+{
+  "type": "runbook",
+  "name": "Test Tabelle",
+  "description": "Der datengetriebene Test, wie man ihn hinschreibt: Kopfzeile, darunter je ein Fall. Vier Anmeldungen mit Name, Rolle und erwartetem Status — und darunter geht „Für jedes“ sie durch. Zusammen sind die beiden der Fall, für den man so ein Programm baut.\n\n**Zellen sind Text**, wie die Elemente der Liste: sie nach Aussehen umzudeuten machte aus einer Postleitzahl eine Zahl und aus „0041“ die 41. Wer rechnen will, schickt die Spalte durch „Zu Zahl“ — hier tut das der Strang rechts, der die erwarteten Status addiert, damit man sieht, dass es geht.\n\n**Eine leere Zelle ist ein leerer Wert, eine fehlende fehlt.** Zeile 4 hört früher auf und hat deshalb gar keine Rolle; „gast“ mit leerer Rolle in Zeile 3 hat eine, die leer ist. Der Filter unten zeigt den Unterschied: er behält nur, was überhaupt eine Rolle trägt. Und im Log bleibt beim letzten Fall ein {{erwartet}} stehen — die Vorlage erfindet nichts, und so sieht man in der Zeile selbst, dass dort eine Zelle fehlt.\n\nWas ein Dienst *zurückgibt*, liest dagegen der CSV-Knoten — dort gibt es Anführungszeichen und Zeilenumbrüche in Zellen. Hier steht, was jemand tippt, und dafür braucht es nichts davon.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "kind": "start",
+        "x": 60,
+        "y": 48
+      },
+      {
+        "id": "faelle",
+        "kind": "table",
+        "name": "Vier Anmeldungen",
+        "comment": "Zeile 3 hat eine leere Rolle, Zeile 4 gar keine — das ist der Unterschied, den der Knoten macht.",
+        "data": {
+          "rows": "name;rolle;erwartet\nada;admin;200\ngrace;prüfer;200\nalan;;403\nmallory",
+          "separator": ";"
+        },
+        "x": 60,
+        "y": 264
+      },
+      {
+        "id": "mit_rolle",
+        "kind": "filter",
+        "name": "Nur mit Rolle",
+        "comment": "„rolle“ fehlt bei mallory ganz und ist bei alan leer — beide fallen weg, aber aus verschiedenen Gründen.",
+        "vars": {
+          "list": "$faelle.body"
+        },
+        "data": {
+          "where": "item.rolle"
+        },
+        "x": 420,
+        "y": 420
+      },
+      {
+        "id": "jeder_fall",
+        "kind": "foreach",
+        "name": "Für jeden Fall",
+        "comment": "Geht die Tabelle durch — die Rückkante vom Log hierher ist die Schleife.",
+        "vars": {
+          "list": "$faelle.body"
+        },
+        "x": 420,
+        "y": 168
+      },
+      {
+        "id": "zeile",
+        "kind": "template",
+        "name": "Was zu prüfen wäre",
+        "comment": "Beim letzten Fall bleibt {{erwartet}} stehen: die Zelle fehlt, und die Vorlage erfindet nichts. Genau daran sieht man im Log, welche Zeile unvollständig war.",
+        "vars": {
+          "name": "$jeder_fall.body.each.name",
+          "erwartet": "$jeder_fall.body.each.erwartet",
+          "stelle": "$jeder_fall.body.index"
+        },
+        "data": {
+          "text": "[{{stelle}}] {{name}} soll {{erwartet}} bekommen"
+        },
+        "x": 768,
+        "y": 288
+      },
+      {
+        "id": "notiz",
+        "kind": "log",
+        "name": "Je Fall eine Zeile",
+        "vars": {
+          "input": "$zeile.body"
+        },
+        "data": {
+          "label": "Fall"
+        },
+        "flow": true,
+        "x": 768,
+        "y": 168
+      },
+      {
+        "id": "summe",
+        "kind": "sum",
+        "name": "Status addiert",
+        "comment": "Zahlen in Textform zählen als Zahlen — deshalb geht das, ohne die Spalte vorher umzuwandeln.",
+        "vars": {
+          "list": "$faelle.body"
+        },
+        "data": {
+          "path": "erwartet"
+        },
+        "x": 420,
+        "y": 552
+      },
+      {
+        "id": "ende",
+        "kind": "end",
+        "name": "Ende",
+        "vars": {
+          "faelle": "$faelle.body",
+          "durchgegangen": "$jeder_fall.body.index",
+          "mit_rolle": "$mit_rolle.body.count",
+          "status_summe": "$summe.body"
+        },
+        "data": {
+          "label": "Vier Fälle, vier Durchgänge"
+        },
+        "x": 1116,
+        "y": 48
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "jeder_fall"
+      },
+      {
+        "from": "jeder_fall.each",
+        "to": "notiz"
+      },
+      {
+        "from": "notiz",
+        "to": "jeder_fall"
+      },
+      {
+        "from": "jeder_fall.done",
+        "to": "ende"
+      }
+    ]
+  }
+}

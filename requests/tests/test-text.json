@@ -1,0 +1,151 @@
+{
+  "type": "runbook",
+  "name": "Test Text",
+  "description": "Trennen, Verbinden und Ersetzen an einem Stück: aus einer Zeile mit Semikolons wird eine Liste, daraus ein Text Zeile für Zeile, darin werden Vor- und Nachname vertauscht, und am Ende steht wieder eine Liste.\n\nNach dem Lauf steht am Log „Lovelace, Ada“, „Hopper, Grace“, „Turing, Alan“ und am Ende die Anzahl 3. Zu sehen ist dabei zweierlei: der Trenner am ersten Split kommt von einer Leitung, der am zweiten aus dem Feld — und nur im Feld gilt \\n als Zeilenumbruch.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "kind": "start",
+        "x": 324,
+        "y": -12
+      },
+      {
+        "id": "quelle",
+        "kind": "string",
+        "name": "Eine Zeile",
+        "data": {
+          "value": "Ada Lovelace; Grace Hopper; Alan Turing"
+        },
+        "group": "gruppe",
+        "x": -36,
+        "y": 132
+      },
+      {
+        "id": "trenner",
+        "kind": "string",
+        "name": "Trenner",
+        "comment": "Der Trenner als Wert: so steht er einmal da und nicht in jedem Knoten noch einmal. An einer Leitung wird nichts umgedeutet — was hier steht, trennt genau so.",
+        "data": {
+          "value": "; "
+        },
+        "group": "gruppe",
+        "x": -36,
+        "y": 288
+      },
+      {
+        "id": "teilen",
+        "kind": "split",
+        "name": "Split",
+        "comment": "Der Trenner kommt vom Eingang und schlägt damit das Feld. Die Anzahl fällt gleich mit ab.",
+        "vars": {
+          "text": "$quelle.body",
+          "separator": "$trenner.body"
+        },
+        "group": "gruppe",
+        "x": 324,
+        "y": 156
+      },
+      {
+        "id": "verbinden",
+        "kind": "join",
+        "name": "Join",
+        "comment": "Zeile für Zeile: im Feld ist \\n ein Zeilenumbruch — in eine einzeilige Eingabe lässt sich keiner tippen.",
+        "vars": {
+          "list": "$teilen.body.items"
+        },
+        "data": {
+          "separator": "\\n"
+        },
+        "group": "gruppe",
+        "x": 324,
+        "y": 288
+      },
+      {
+        "id": "umstellen",
+        "kind": "replace",
+        "name": "Ersetzen",
+        "comment": "Nachname zuerst. Im Muster gelten dessen eigene Escapes, und die Klammern kommen im Ersatz als $1 und $2 zurück.",
+        "vars": {
+          "text": "$verbinden.body"
+        },
+        "data": {
+          "search": "([A-Za-zäöüÄÖÜß]+) ([A-Za-zäöüÄÖÜß]+)",
+          "with": "$2, $1",
+          "mode": "muster",
+          "scope": "alle"
+        },
+        "group": "gruppe",
+        "x": 324,
+        "y": 408
+      },
+      {
+        "id": "zeilen",
+        "kind": "split",
+        "name": "Wieder eine Liste",
+        "comment": "Zurück zerlegt, diesmal mit dem Trenner aus dem Feld.",
+        "vars": {
+          "text": "$umstellen.body"
+        },
+        "data": {
+          "separator": "\\n"
+        },
+        "group": "gruppe",
+        "x": 324,
+        "y": 552
+      },
+      {
+        "id": "notiz",
+        "kind": "log",
+        "name": "Log",
+        "comment": "Im Ablauf: er schreibt, wenn der Lauf vorbeikommt — und zieht dabei die ganze Kette rechts von ihm.",
+        "vars": {
+          "namen": "$zeilen.body.items"
+        },
+        "data": {
+          "label": "Umgestellt"
+        },
+        "flow": true,
+        "x": 876,
+        "y": 504
+      },
+      {
+        "id": "ende",
+        "kind": "end",
+        "name": "Ende",
+        "vars": {
+          "anzahl": "$teilen.body.count",
+          "namen": "$zeilen.body.items",
+          "text": "$umstellen.body"
+        },
+        "data": {
+          "label": "Text zerlegt und wieder zusammengesetzt"
+        },
+        "x": 1224,
+        "y": 132
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "notiz"
+      },
+      {
+        "from": "notiz",
+        "to": "ende",
+        "via": [
+          {
+            "x": 1274,
+            "y": 505,
+            "dir": "up"
+          },
+          {
+            "x": 1128,
+            "y": 276,
+            "dir": "up"
+          }
+        ]
+      }
+    ]
+  }
+}

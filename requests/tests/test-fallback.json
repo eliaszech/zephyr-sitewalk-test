@@ -1,0 +1,164 @@
+{
+  "type": "runbook",
+  "name": "Test Fallback",
+  "description": "„Nimm den Wert aus der Antwort, und wenn die Antwort keinen hat, nimm den vorgegebenen.“ Dreimal derselbe Knoten, dreimal ein anderer Grund.\n\nOben liegt an „a“ etwas — das gilt. In der Mitte steht dort `null`, also kommt „b“ zum Zug. Unten **scheitert** der Zubringer: der Extract sucht ein Feld, das es nicht gibt, und meldet einen Fehler. Der Fallback fängt ihn auf — er ist der einzige Knoten, der einen Fehler am Eingang nicht weiterreicht, denn hier ist er keine Störung, sondern die Frage.\n\nEin **leerer Text gewinnt** dagegen: er ist ein Wert, wie beim Join. Wer auch ihn ersetzen will, fragt vorher mit einer Bedingung.\n\nGeben beide nichts her, steht am Knoten der Fehler von „a“ und nicht „liegt nichts an“ — die Ursache ist die Auskunft, die weiterhilft.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "kind": "start",
+        "x": 60,
+        "y": 48
+      },
+      {
+        "id": "antwort",
+        "kind": "json",
+        "name": "Eine Antwort",
+        "comment": "„sprache“ steht auf null, „region“ fehlt ganz — beides kommt so wirklich zurück.",
+        "data": {
+          "value": "{\"name\": \"ada\", \"sprache\": null}"
+        },
+        "x": 60,
+        "y": 288
+      },
+      {
+        "id": "vorgabe",
+        "kind": "string",
+        "name": "Vorgabe",
+        "data": {
+          "value": "de-CH"
+        },
+        "x": 60,
+        "y": 456
+      },
+      {
+        "id": "name",
+        "kind": "fallback",
+        "name": "Name",
+        "comment": "An „a“ liegt etwas — die Vorgabe bleibt unangetastet.",
+        "vars": {
+          "a": "$antwort.body.name",
+          "b": "$vorgabe.body"
+        },
+        "x": 420,
+        "y": 192
+      },
+      {
+        "id": "sprache",
+        "kind": "fallback",
+        "name": "Sprache",
+        "comment": "An „a“ steht null — das ist nichts, also gilt „b“.",
+        "vars": {
+          "a": "$antwort.body.sprache",
+          "b": "$vorgabe.body"
+        },
+        "x": 420,
+        "y": 336
+      },
+      {
+        "id": "sucht_region",
+        "kind": "extract",
+        "name": "Region suchen",
+        "comment": "Es gibt keine — der Knoten meldet einen Fehler und steht rot da. Das ist die Absicht.",
+        "vars": {
+          "input": "$antwort.body"
+        },
+        "data": {
+          "path": "region.code"
+        },
+        "x": 420,
+        "y": 480
+      },
+      {
+        "id": "region",
+        "kind": "fallback",
+        "name": "Region",
+        "comment": "Fängt den Fehler auf: dass „a“ nicht ging, ist hier keine Störung, sondern die Frage.",
+        "vars": {
+          "a": "$sucht_region.body",
+          "b": "$vorgabe.body"
+        },
+        "x": 768,
+        "y": 480
+      },
+      {
+        "id": "leer",
+        "kind": "string",
+        "name": "Ein leerer Text",
+        "data": {
+          "value": ""
+        },
+        "x": 60,
+        "y": 624
+      },
+      {
+        "id": "bleibt_leer",
+        "kind": "fallback",
+        "name": "Leer gewinnt",
+        "comment": "Ein leerer Text ist ein Wert — dieselbe Entscheidung wie beim Join. Wer auch ihn ersetzen will, fragt vorher mit einer Bedingung.",
+        "vars": {
+          "a": "$leer.body",
+          "b": "$vorgabe.body"
+        },
+        "x": 420,
+        "y": 624
+      },
+      {
+        "id": "kopf",
+        "kind": "template",
+        "name": "Als Kopfzeile",
+        "vars": {
+          "name": "$name.body",
+          "sprache": "$sprache.body",
+          "region": "$region.body"
+        },
+        "data": {
+          "text": "X-Nutzer: {{name}}; Accept-Language: {{sprache}}; X-Region: {{region}}"
+        },
+        "x": 768,
+        "y": 288
+      },
+      {
+        "id": "notiz",
+        "kind": "log",
+        "name": "Log",
+        "vars": {
+          "input": "$kopf.body"
+        },
+        "data": {
+          "label": "Kopfzeile"
+        },
+        "flow": true,
+        "x": 420,
+        "y": 48
+      },
+      {
+        "id": "ende",
+        "kind": "end",
+        "name": "Ende",
+        "vars": {
+          "name": "$name.body",
+          "sprache": "$sprache.body",
+          "region": "$region.body",
+          "leer_bleibt_leer": "$bleibt_leer.body",
+          "kopfzeile": "$kopf.body"
+        },
+        "data": {
+          "label": "Einmal a, zweimal b"
+        },
+        "x": 768,
+        "y": 48
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "notiz"
+      },
+      {
+        "from": "notiz",
+        "to": "ende"
+      }
+    ]
+  }
+}

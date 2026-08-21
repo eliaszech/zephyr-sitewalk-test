@@ -1,0 +1,162 @@
+{
+  "type": "runbook",
+  "name": "Test URL zerlegen",
+  "description": "Drei Adressen, wie sie in Antworten wirklich stehen.\n\nOben eine **ganze**: Schema, Host mit Port, Pfad, Query und Fragment stehen je an einem eigenen Ausgang. Die Kennung aus dem Pfad holt daneben ein Muster — der Pfad bleibt so, wie der Server ihn gesehen hat, also kodiert.\n\nIn der Mitte ein **Location-Kopf, der nur ein Pfad ist** — so kommt er oft zurück. Der Knoten gibt trotzdem nicht auf: Schema und Host bleiben leer, statt einen erfundenen Anker zu behaupten, und der Pfad ist das, wonach gefragt war.\n\nUnten ein **OAuth-Redirect**: der Token steht hinter der Raute, wo ihn der Server nie zu sehen bekommt. Genau dafür gibt es den Fragment-Ausgang; ein zweites Zerlegen holt daraus den Wert. Und `?tag=a&tag=b` zeigt, dass ein doppelter Name als Liste dasteht statt zur Hälfte zu verschwinden.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "kind": "start",
+        "x": 60,
+        "y": 48
+      },
+      {
+        "id": "ganze",
+        "kind": "string",
+        "name": "Eine ganze Adresse",
+        "data": {
+          "value": "https://api.test:8443/v2/bestellungen/4711?seite=2&tag=neu&tag=eilig#position"
+        },
+        "x": 60,
+        "y": 264
+      },
+      {
+        "id": "teile",
+        "kind": "parseurl",
+        "name": "Zerlegt",
+        "comment": "„host“ trägt den Port mit, wie er im Host-Kopf stünde. Der doppelte „tag“ steht als Liste da.",
+        "vars": {
+          "input": "$ganze.body"
+        },
+        "x": 420,
+        "y": 264
+      },
+      {
+        "id": "kennung",
+        "kind": "regex",
+        "name": "Die Kennung",
+        "comment": "Aus dem Pfad — der bleibt kodiert, so wie ihn der Server gesehen hat.",
+        "vars": {
+          "input": "$teile.body.path"
+        },
+        "data": {
+          "pattern": "/([0-9]+)$"
+        },
+        "x": 768,
+        "y": 264
+      },
+      {
+        "id": "location",
+        "kind": "string",
+        "name": "Ein Location-Kopf",
+        "comment": "Nur ein Pfad, ohne Schema und Host — so kommt er wirklich zurück.",
+        "data": {
+          "value": "/v2/bestellungen/4712?quelle=web"
+        },
+        "x": 60,
+        "y": 480
+      },
+      {
+        "id": "relativ",
+        "kind": "parseurl",
+        "name": "Auch das geht",
+        "comment": "Schema und Host bleiben leer. Aufzugeben wäre die Antwort auf die halbe Frage.",
+        "vars": {
+          "input": "$location.body"
+        },
+        "x": 420,
+        "y": 480
+      },
+      {
+        "id": "redirect",
+        "kind": "string",
+        "name": "Ein OAuth-Redirect",
+        "data": {
+          "value": "https://app.test/callback#access_token=abc123&state=xyz&expires_in=3600"
+        },
+        "x": 60,
+        "y": 660
+      },
+      {
+        "id": "hinten",
+        "kind": "parseurl",
+        "name": "Zerlegt",
+        "comment": "Der Token steht hinter der Raute — der Server bekommt ihn nie zu sehen, der Browser schon.",
+        "vars": {
+          "input": "$redirect.body"
+        },
+        "x": 420,
+        "y": 660
+      },
+      {
+        "id": "als_query",
+        "kind": "template",
+        "name": "Fragment als Query",
+        "comment": "Ein Trick, der sich lohnt: mit einem Fragezeichen davor liest derselbe Knoten das Fragment als Query.",
+        "vars": {
+          "fragment": "$hinten.body.fragment"
+        },
+        "data": {
+          "text": "?{{fragment}}"
+        },
+        "x": 768,
+        "y": 660
+      },
+      {
+        "id": "token",
+        "kind": "parseurl",
+        "name": "Der Token",
+        "vars": {
+          "input": "$als_query.body"
+        },
+        "x": 1116,
+        "y": 660
+      },
+      {
+        "id": "notiz",
+        "kind": "log",
+        "name": "Log",
+        "vars": {
+          "host": "$teile.body.host",
+          "kennung": "$kennung.body.groups.0"
+        },
+        "data": {
+          "label": "Bestellung"
+        },
+        "flow": true,
+        "x": 420,
+        "y": 48
+      },
+      {
+        "id": "ende",
+        "kind": "end",
+        "name": "Ende",
+        "vars": {
+          "schema": "$teile.body.schema",
+          "host": "$teile.body.host",
+          "kennung": "$kennung.body.groups.0",
+          "tags": "$teile.body.query.tag",
+          "fragment": "$teile.body.fragment",
+          "location_pfad": "$relativ.body.path",
+          "location_host": "$relativ.body.host",
+          "access_token": "$token.body.query.access_token"
+        },
+        "data": {
+          "label": "Drei Adressen, acht Teile"
+        },
+        "x": 768,
+        "y": 48
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "notiz"
+      },
+      {
+        "from": "notiz",
+        "to": "ende"
+      }
+    ]
+  }
+}

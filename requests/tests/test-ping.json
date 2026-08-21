@@ -1,0 +1,150 @@
+{
+  "type": "runbook",
+  "name": "Test Ping",
+  "description": "Ist der Dienst da, und wie schnell nimmt er ab?\n\n**Kein ICMP.** Das echte Ping braucht einen Raw Socket und damit erhöhte Rechte — ein Werkzeug, das beim ersten Klick nach dem Kennwort fragt, ist keines. Gemessen wird die Zeit bis zur **TCP-Verbindung**, und das ist ohnehin die Frage, die man an einen Dienst hat: nicht „antwortet der Rechner“, sondern „nimmt der Port ab“.\n\nDer Port steht **im Ziel**, wie in einer Adresse: `api.test:8443`. Ohne ihn gilt 443, denn was man heute anpingt, spricht TLS.\n\n**Nicht erreichbar ist kein Fehler, sondern das Ergebnis.** Der zweite Ping unten zielt mit Absicht auf einen toten Port; er läuft grün durch und sagt `ok = false` — der Ablauf soll nicht stehenbleiben, wo er gerade erst herausfinden wollte, ob es weitergeht. Verzweigt wird danach mit einer Bedingung, und die steht rechts.\n\nJeder Versuch wartet höchstens zwei Sekunden: ein Ping, der dreissig Sekunden wartet, misst die Geduld und nicht den Dienst.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "kind": "start",
+        "x": 60,
+        "y": 48
+      },
+      {
+        "id": "erreichbar",
+        "kind": "ping",
+        "name": "Der Dienst",
+        "comment": "Drei Versuche, ohne Pause dazwischen: gemessen wird ein Dienst und nicht eine Leitung über die Zeit. „ms“ ist der Schnitt der geglückten.",
+        "data": {
+          "host": "example.com:443",
+          "count": "3"
+        },
+        "x": 420,
+        "y": 48
+      },
+      {
+        "id": "schnell_genug",
+        "kind": "condition",
+        "name": "Schnell genug?",
+        "comment": "Verzweigt wird mit einer Bedingung und nicht am Ping selbst: er misst, sie entscheidet.",
+        "vars": {
+          "input": "$erreichbar.body.ms"
+        },
+        "data": {
+          "expr": "input !== null && input < 500"
+        },
+        "x": 768,
+        "y": 48
+      },
+      {
+        "id": "gut",
+        "kind": "log",
+        "name": "Läuft",
+        "vars": {
+          "ms": "$erreichbar.body.ms",
+          "host": "$erreichbar.body.host"
+        },
+        "data": {
+          "label": "erreichbar"
+        },
+        "flow": true,
+        "x": 1116,
+        "y": 48
+      },
+      {
+        "id": "lahm",
+        "kind": "log",
+        "name": "Zu langsam oder weg",
+        "vars": {
+          "ok": "$erreichbar.body.ok",
+          "grund": "$erreichbar.body.reason"
+        },
+        "data": {
+          "label": "nicht gut"
+        },
+        "flow": true,
+        "x": 1116,
+        "y": 192
+      },
+      {
+        "id": "toter_port",
+        "kind": "ping",
+        "name": "Absichtlich ins Leere",
+        "comment": "Port 9 nimmt nirgends ab. Der Knoten läuft trotzdem grün durch — nicht erreichbar ist ein Ergebnis, kein Fehler.",
+        "data": {
+          "host": "127.0.0.1:9",
+          "count": "1"
+        },
+        "x": 420,
+        "y": 384
+      },
+      {
+        "id": "gemeldet",
+        "kind": "log",
+        "name": "Was der Grund war",
+        "comment": "„reason“ sagt, woran der letzte Versuch scheiterte — abgewiesen, kein Weg dorthin, oder unsere zwei Sekunden.",
+        "vars": {
+          "ok": "$toter_port.body.ok",
+          "grund": "$toter_port.body.reason"
+        },
+        "data": {
+          "label": "toter Port"
+        },
+        "flow": true,
+        "x": 768,
+        "y": 384
+      },
+      {
+        "id": "ende",
+        "kind": "end",
+        "name": "Ende",
+        "vars": {
+          "erreichbar": "$erreichbar.body.ok",
+          "ms": "$erreichbar.body.ms",
+          "versuche": "$erreichbar.body.tries",
+          "toter_port_ok": "$toter_port.body.ok",
+          "grund": "$toter_port.body.reason"
+        },
+        "data": {
+          "label": "Einmal da, einmal nicht"
+        },
+        "x": 1464,
+        "y": 48
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "erreichbar"
+      },
+      {
+        "from": "erreichbar.success",
+        "to": "schnell_genug"
+      },
+      {
+        "from": "schnell_genug.then",
+        "to": "gut"
+      },
+      {
+        "from": "schnell_genug.else",
+        "to": "lahm"
+      },
+      {
+        "from": "gut",
+        "to": "toter_port"
+      },
+      {
+        "from": "lahm",
+        "to": "toter_port"
+      },
+      {
+        "from": "toter_port.success",
+        "to": "gemeldet"
+      },
+      {
+        "from": "gemeldet",
+        "to": "ende"
+      }
+    ]
+  }
+}

@@ -1,0 +1,154 @@
+{
+  "type": "runbook",
+  "name": "Test Switch",
+  "description": "Ein Wert, mehrere Wege. Sobald man drei Fälle unterscheidet, ist eine Kette von Bedingungen unübersichtlich — hier stehen sie untereinander, und die Ausgänge daneben zeigen im Bild, wohin jeder führt.\n\nDer Status einer Antwort entscheidet: **1** für alles unter 300, **2** für 4xx, **3** für 5xx, **else** für den Rest. Die erste Zeile, die zutrifft, gewinnt — deshalb steht die engste oben. Gelesen wird dieselbe Sprache wie an der Bedingung, über den Eingängen des Knotens.\n\n**Leere Zeilen fallen weg**: wer einen Fall auslassen will, schreibt `false` hin, statt eine Zeile frei zu lassen — sonst rutschte alles Weitere einen Ausgang nach oben, und niemand sähe es.\n\nDrei Ausgänge sind der Anfang, nicht die Grenze: wer mehr Fälle hat, legt am Knoten einen an, und die Zeilen zählen weiter.\n\nUnter den Wegen hat der Knoten zwei **Werte**: „fall“ sagt, welcher Weg genommen wurde, „wert“ reicht den Eingang durch — der Zweig dahinter muss dafür nicht zur Quelle zurückgreifen. Der 4xx-Log liest deshalb den Durchgereichten, die anderen die Quelle: beides geht, und nebeneinander sieht man den Unterschied.\n\nZum Ausprobieren: die Zahl im Knoten „Status“ ändern und den Lauf noch einmal starten — in der Zeitleiste steht dann ein anderer Weg.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "kind": "start",
+        "x": 48,
+        "y": -120
+      },
+      {
+        "id": "status",
+        "kind": "number",
+        "name": "Status",
+        "comment": "Steht für das, was ein Request zurückgäbe. Ändern und noch einmal laufen lassen.",
+        "data": {
+          "value": "404"
+        },
+        "x": 48,
+        "y": -24
+      },
+      {
+        "id": "weiche",
+        "kind": "switch",
+        "name": "Nach Status",
+        "comment": "Die erste Zeile, die zutrifft, gewinnt — deshalb steht die engste oben.",
+        "vars": {
+          "input": "$status.body"
+        },
+        "data": {
+          "cases": "input < 300\ninput < 500\ninput < 600"
+        },
+        "x": 384,
+        "y": -120
+      },
+      {
+        "id": "gut",
+        "kind": "log",
+        "name": "Alles gut",
+        "vars": {
+          "input": "$weiche.body.value"
+        },
+        "data": {
+          "label": "2xx"
+        },
+        "flow": true,
+        "x": 768,
+        "y": 108
+      },
+      {
+        "id": "unsere_schuld",
+        "kind": "log",
+        "name": "Unsere Schuld",
+        "comment": "4xx: der Aufruf war falsch — Kennung, Rechte, Rumpf. Liest den durchgereichten Wert und nicht die Quelle: so hängt der Zweig an der Entscheidung, die ihn gebracht hat.",
+        "vars": {
+          "input": "$weiche.body.value"
+        },
+        "data": {
+          "label": "4xx"
+        },
+        "flow": true,
+        "x": 768,
+        "y": 216
+      },
+      {
+        "id": "ihre_schuld",
+        "kind": "log",
+        "name": "Ihre Schuld",
+        "comment": "5xx: der Dienst hat ein Problem — hier lohnt ein zweiter Versuch.",
+        "vars": {
+          "input": "$weiche.body.value"
+        },
+        "data": {
+          "label": "5xx"
+        },
+        "flow": true,
+        "x": 768,
+        "y": 348
+      },
+      {
+        "id": "unbekannt",
+        "kind": "log",
+        "name": "Kein Status, den wir kennen",
+        "comment": "Der else-Weg: was keine der Zeilen trifft, geht hierher — und nicht ins Leere.",
+        "vars": {
+          "input": "$weiche.body.value"
+        },
+        "data": {
+          "label": "sonst"
+        },
+        "flow": true,
+        "x": 768,
+        "y": 480
+      },
+      {
+        "id": "ende",
+        "kind": "end",
+        "name": "Ende",
+        "vars": {
+          "fall": "$weiche.body.case",
+          "status": "$weiche.body.value"
+        },
+        "data": {
+          "label": "Einer von vier Wegen"
+        },
+        "ports": [
+          "status"
+        ],
+        "x": 1116,
+        "y": -48
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "weiche"
+      },
+      {
+        "from": "weiche.1",
+        "to": "gut"
+      },
+      {
+        "from": "weiche.2",
+        "to": "unsere_schuld"
+      },
+      {
+        "from": "weiche.3",
+        "to": "ihre_schuld"
+      },
+      {
+        "from": "weiche.else",
+        "to": "unbekannt"
+      },
+      {
+        "from": "gut",
+        "to": "ende"
+      },
+      {
+        "from": "unsere_schuld",
+        "to": "ende"
+      },
+      {
+        "from": "ihre_schuld",
+        "to": "ende"
+      },
+      {
+        "from": "unbekannt",
+        "to": "ende"
+      }
+    ]
+  }
+}

@@ -1,0 +1,195 @@
+{
+  "type": "runbook",
+  "name": "Test Map und Umwandeln",
+  "description": "Was eine Antwort zurückgibt, hat selten schon die Art, die man braucht.\n\n**Zu Wahrheitswert**: das Feld „aktiv“ kommt als Text `\"false\"` zurück — und ein Text, der nicht leer ist, ist wahr. Genau daran hängt der Fehler, den man einmal sucht und nie wiederfinden will; hier wird daraus ein echtes Nein. Streng daneben lässt nur „true“ und „false“ gelten.\n\n**Zu Zahl**: `\"7\"` wird 7, und `\"ff\"` mit Basis 16 wird 255. **Zu Text**: das ganze Objekt eingerückt, ohne Anführungszeichen darum.\n\n**Map** wendet eine Zeile auf jedes Element an: einmal die Kennungen herausgezogen, einmal jeder Preis gegen eine Grenze geprüft — die hängt als eigener Eingang am Knoten und steht damit einmal da statt dreimal in der Zeile.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "kind": "start",
+        "x": 60,
+        "y": 48
+      },
+      {
+        "id": "antwort",
+        "kind": "json",
+        "name": "Eine Antwort",
+        "comment": "Alles Text, wie es aus manchen Diensten wirklich kommt.",
+        "data": {
+          "value": "{\"aktiv\": \"false\", \"anzahl\": \"7\", \"farbe\": \"ff\"}"
+        },
+        "x": 60,
+        "y": 264
+      },
+      {
+        "id": "aktiv",
+        "kind": "tobool",
+        "name": "Wirklich aktiv?",
+        "comment": "Ohne diesen Knoten wäre „false“ wahr — der Text ist ja nicht leer.",
+        "vars": {
+          "input": "$antwort.body.aktiv"
+        },
+        "x": 420,
+        "y": 192
+      },
+      {
+        "id": "streng",
+        "kind": "tobool",
+        "name": "Streng gelesen",
+        "comment": "Nur „true“ und „false“ gelten. Bei einem Tippfehler steht hier ein Fehler statt eines stillen „wahr“.",
+        "vars": {
+          "input": "$antwort.body.aktiv"
+        },
+        "data": {
+          "mode": "streng"
+        },
+        "x": 420,
+        "y": 312
+      },
+      {
+        "id": "anzahl",
+        "kind": "tonumber",
+        "name": "Zu Zahl",
+        "comment": "Erst danach heisst „> 5“, was es sagt.",
+        "vars": {
+          "input": "$antwort.body.anzahl"
+        },
+        "x": 420,
+        "y": 432
+      },
+      {
+        "id": "farbe",
+        "kind": "tonumber",
+        "name": "Hex zu Zahl",
+        "vars": {
+          "input": "$antwort.body.farbe"
+        },
+        "data": {
+          "mode": "ganz",
+          "base": "16"
+        },
+        "x": 420,
+        "y": 552
+      },
+      {
+        "id": "als_text",
+        "kind": "totext",
+        "name": "Als Text",
+        "comment": "Eingerückt — und ohne Anführungszeichen darum, die beim Anhängen an eine Datei niemand haben will.",
+        "vars": {
+          "input": "$antwort.body"
+        },
+        "data": {
+          "form": "eingerückt"
+        },
+        "x": 768,
+        "y": 264
+      },
+      {
+        "id": "waren",
+        "kind": "json",
+        "name": "Drei Waren",
+        "data": {
+          "value": "[{\"id\": 11, \"preis\": 250}, {\"id\": 12, \"preis\": 40}, {\"id\": 13, \"preis\": 99}]"
+        },
+        "x": 60,
+        "y": 684
+      },
+      {
+        "id": "grenze",
+        "kind": "number",
+        "name": "Grenze",
+        "comment": "Einmal hier statt dreimal in der Zeile — als eigener Eingang am Map.",
+        "data": {
+          "value": "100"
+        },
+        "x": 60,
+        "y": 828
+      },
+      {
+        "id": "kennungen",
+        "kind": "map",
+        "name": "Nur die Kennungen",
+        "comment": "Aus einer Liste die Kennungen zu ziehen ist kein Ablauf — deshalb eine Zeile und keine Schleife.",
+        "vars": {
+          "list": "$waren.body"
+        },
+        "data": {
+          "expr": "item.id"
+        },
+        "x": 420,
+        "y": 684
+      },
+      {
+        "id": "teuer",
+        "kind": "map",
+        "name": "Über der Grenze?",
+        "vars": {
+          "list": "$waren.body",
+          "grenze": "$grenze.body"
+        },
+        "data": {
+          "expr": "item.preis > grenze"
+        },
+        "x": 420,
+        "y": 828
+      },
+      {
+        "id": "liste",
+        "kind": "join",
+        "name": "Als eine Zeile",
+        "vars": {
+          "list": "$kennungen.body.items"
+        },
+        "data": {
+          "separator": ", "
+        },
+        "x": 768,
+        "y": 684
+      },
+      {
+        "id": "notiz",
+        "kind": "log",
+        "name": "Log",
+        "vars": {
+          "input": "$liste.body"
+        },
+        "data": {
+          "label": "Kennungen"
+        },
+        "flow": true,
+        "x": 420,
+        "y": 48
+      },
+      {
+        "id": "ende",
+        "kind": "end",
+        "name": "Ende",
+        "vars": {
+          "aktiv": "$aktiv.body",
+          "streng_gelesen": "$streng.body",
+          "anzahl": "$anzahl.body",
+          "farbe": "$farbe.body",
+          "als_text": "$als_text.body",
+          "kennungen": "$liste.body",
+          "ueber_der_grenze": "$teuer.body.items"
+        },
+        "data": {
+          "label": "Umgewandelt und umgerechnet"
+        },
+        "x": 768,
+        "y": 48
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "notiz"
+      },
+      {
+        "from": "notiz",
+        "to": "ende"
+      }
+    ]
+  }
+}

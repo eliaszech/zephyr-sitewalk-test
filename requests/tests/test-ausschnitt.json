@@ -1,0 +1,172 @@
+{
+  "type": "runbook",
+  "name": "Test Ausschnitt",
+  "description": "Ein Stück heraus — aus einer Liste und aus einem Text, mit demselben Knoten. Dieselbe Frage an beide, wie sie „Anzahl“ und „Umdrehen“ stellen.\n\nGezählt wird **ab null**, und eine negative Stelle zählt von hinten: -3 sind die letzten drei. Ohne Anzahl geht es bis zum Ende. **Mehr zu verlangen, als da ist, ist kein Fehler** — die ersten zehn von fünf sind fünf, und der Ausgang „count“ sagt, wie viele es wirklich wurden.\n\nAus einem Text wird über **Zeichen** geschnitten und nicht über Bytes: „Grüezi 🙂“ auf acht Zeichen behält das Gesicht ganz.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "kind": "start",
+        "x": 60,
+        "y": 48
+      },
+      {
+        "id": "antwort",
+        "kind": "json",
+        "name": "Fünf Bestellungen",
+        "comment": "Steht für die tausend, die ein Dienst wirklich zurückgibt.",
+        "data": {
+          "value": "[{\"nr\": 1}, {\"nr\": 2}, {\"nr\": 3}, {\"nr\": 4}, {\"nr\": 5}]"
+        },
+        "x": 60,
+        "y": 264
+      },
+      {
+        "id": "erste_zwei",
+        "kind": "slice",
+        "name": "Die ersten zwei",
+        "comment": "Beim Bauen will man sehen, was geschieht, und nicht warten, bis es tausendmal geschehen ist.",
+        "vars": {
+          "input": "$antwort.body"
+        },
+        "data": {
+          "count": "2"
+        },
+        "x": 420,
+        "y": 192
+      },
+      {
+        "id": "letzte_drei",
+        "kind": "slice",
+        "name": "Die letzten drei",
+        "comment": "Negativ zählt von hinten; ohne Anzahl geht es bis zum Ende.",
+        "vars": {
+          "input": "$antwort.body"
+        },
+        "data": {
+          "from": "-3"
+        },
+        "x": 420,
+        "y": 324
+      },
+      {
+        "id": "zu_viel",
+        "kind": "slice",
+        "name": "Zehn verlangt",
+        "comment": "Fünf sind da, fünf kommen — kein Fehler. Wie viele es wurden, sagt „count“.",
+        "vars": {
+          "input": "$antwort.body"
+        },
+        "data": {
+          "count": "10"
+        },
+        "x": 420,
+        "y": 456
+      },
+      {
+        "id": "gruss",
+        "kind": "string",
+        "name": "Ein Text",
+        "data": {
+          "value": "Grüezi 🙂 mitenand"
+        },
+        "x": 60,
+        "y": 600
+      },
+      {
+        "id": "anfang",
+        "kind": "slice",
+        "name": "Die ersten acht Zeichen",
+        "comment": "Über Zeichen: das Gesicht bleibt eines statt in zwei Hälften zu zerfallen.",
+        "vars": {
+          "input": "$gruss.body"
+        },
+        "data": {
+          "count": "8"
+        },
+        "x": 420,
+        "y": 600
+      },
+      {
+        "id": "endung",
+        "kind": "slice",
+        "name": "Die letzten acht",
+        "vars": {
+          "input": "$gruss.body"
+        },
+        "data": {
+          "from": "-8"
+        },
+        "x": 420,
+        "y": 732
+      },
+      {
+        "id": "nummern",
+        "kind": "map",
+        "name": "Nur die Nummern",
+        "vars": {
+          "list": "$erste_zwei.body.value"
+        },
+        "data": {
+          "expr": "item.nr"
+        },
+        "x": 768,
+        "y": 192
+      },
+      {
+        "id": "zeile",
+        "kind": "join",
+        "name": "Als Zeile",
+        "vars": {
+          "list": "$nummern.body.items"
+        },
+        "data": {
+          "separator": ", "
+        },
+        "x": 1116,
+        "y": 192
+      },
+      {
+        "id": "notiz",
+        "kind": "log",
+        "name": "Log",
+        "vars": {
+          "input": "$zeile.body"
+        },
+        "data": {
+          "label": "Die ersten zwei"
+        },
+        "flow": true,
+        "x": 420,
+        "y": 48
+      },
+      {
+        "id": "ende",
+        "kind": "end",
+        "name": "Ende",
+        "vars": {
+          "erste_zwei": "$zeile.body",
+          "letzte_drei": "$letzte_drei.body.value",
+          "zehn_verlangt": "$zu_viel.body.count",
+          "anfang": "$anfang.body.value",
+          "endung": "$endung.body.value"
+        },
+        "data": {
+          "label": "Fünfmal ein Stück heraus"
+        },
+        "x": 768,
+        "y": 48
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "notiz"
+      },
+      {
+        "from": "notiz",
+        "to": "ende"
+      }
+    ]
+  }
+}

@@ -1,0 +1,239 @@
+{
+  "type": "runbook",
+  "name": "Test Base64 und Schreibweise",
+  "description": "Wofür es die drei gibt, an drei Handgriffen, die man wirklich macht.\n\n**Base64** baut den Kopf einer Basic-Auth: aus Benutzer und Kennwort wird „ada:geheim“, daraus „Basic YWRhOmdlaGVpbQ==“ — und zurückgelesen steht wieder da, was hineinging. Daneben ein Stück aus einem JWT in der URL-Schreibweise, mit „_“ statt „/“ und ohne Auffüllung: es wird trotzdem gelesen.\n\n**Klein und gross** sind für den Vergleich da: „Zürich“ und „zürich“ sind ein Unterschied, nach dem Kleinschreiben keiner mehr. Und ein Währungscode, den eine Schnittstelle grossgeschrieben erwartet, wird einmal gross gemacht statt in jedem Request von Hand.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "kind": "start",
+        "x": 60,
+        "y": 48
+      },
+      {
+        "id": "benutzer",
+        "kind": "string",
+        "name": "Benutzer",
+        "data": {
+          "value": "ada"
+        },
+        "x": 60,
+        "y": 264
+      },
+      {
+        "id": "kennwort",
+        "kind": "secret",
+        "name": "Kennwort",
+        "comment": "Aus dem Store, damit es nicht im Runbook steht — im Ergebnis unten ist es deshalb verdeckt.",
+        "data": {
+          "name": "token"
+        },
+        "x": 60,
+        "y": 408
+      },
+      {
+        "id": "paar",
+        "kind": "template",
+        "name": "Benutzer:Kennwort",
+        "vars": {
+          "user": "$benutzer.body",
+          "pass": "$kennwort.body"
+        },
+        "data": {
+          "text": "{{user}}:{{pass}}"
+        },
+        "x": 420,
+        "y": 300
+      },
+      {
+        "id": "kodiert",
+        "kind": "base64",
+        "name": "Kodiert",
+        "comment": "Über UTF-8-Bytes: ein Umlaut im Kennwort würde sonst fliegen.",
+        "vars": {
+          "input": "$paar.body"
+        },
+        "x": 768,
+        "y": 300
+      },
+      {
+        "id": "kopf",
+        "kind": "template",
+        "name": "Der Kopf",
+        "vars": {
+          "code": "$kodiert.body"
+        },
+        "data": {
+          "text": "Basic {{code}}"
+        },
+        "x": 1116,
+        "y": 300
+      },
+      {
+        "id": "zurueck",
+        "kind": "base64",
+        "name": "Wieder gelesen",
+        "comment": "Dieselbe Art in die Gegenrichtung — heraus kommt, was hineinging.",
+        "vars": {
+          "input": "$kodiert.body"
+        },
+        "data": {
+          "mode": "decode"
+        },
+        "x": 768,
+        "y": 444
+      },
+      {
+        "id": "jwt_teil",
+        "kind": "string",
+        "name": "Stück aus einem JWT",
+        "comment": "URL-Schreibweise: ein „_“ statt eines „/“, und die Auffüllung fehlt. Von Hand umzuschreiben wäre ein Handgriff, den niemand machen will.",
+        "data": {
+          "value": "eyJzdWIiOiIxMjM_fn4iLCJuYW1lIjoiQWRhIn0"
+        },
+        "x": 60,
+        "y": 552
+      },
+      {
+        "id": "nutzlast",
+        "kind": "base64",
+        "name": "Nutzlast",
+        "vars": {
+          "input": "$jwt_teil.body"
+        },
+        "data": {
+          "mode": "decode"
+        },
+        "x": 420,
+        "y": 552
+      },
+      {
+        "id": "waehrung",
+        "kind": "string",
+        "name": "Aus der Antwort",
+        "data": {
+          "value": "chf"
+        },
+        "x": 60,
+        "y": 696
+      },
+      {
+        "id": "code",
+        "kind": "upper",
+        "name": "Wie erwartet",
+        "comment": "Einmal hier statt in jedem Request von Hand.",
+        "vars": {
+          "text": "$waehrung.body"
+        },
+        "x": 420,
+        "y": 696
+      },
+      {
+        "id": "stadt_a",
+        "kind": "string",
+        "name": "Aus dem Formular",
+        "data": {
+          "value": "Zürich"
+        },
+        "x": 60,
+        "y": 840
+      },
+      {
+        "id": "stadt_b",
+        "kind": "string",
+        "name": "Aus der Datenbank",
+        "data": {
+          "value": "zürich"
+        },
+        "x": 60,
+        "y": 984
+      },
+      {
+        "id": "roh",
+        "kind": "diff",
+        "name": "So verglichen",
+        "comment": "Ein Unterschied — und zwar einer, den niemand gemeint hat.",
+        "vars": {
+          "a": "$stadt_a.body",
+          "b": "$stadt_b.body"
+        },
+        "x": 420,
+        "y": 876
+      },
+      {
+        "id": "klein_a",
+        "kind": "lower",
+        "name": "Klein",
+        "vars": {
+          "text": "$stadt_a.body"
+        },
+        "x": 420,
+        "y": 1020
+      },
+      {
+        "id": "klein_b",
+        "kind": "lower",
+        "name": "Klein",
+        "vars": {
+          "text": "$stadt_b.body"
+        },
+        "x": 420,
+        "y": 1140
+      },
+      {
+        "id": "gleich",
+        "kind": "diff",
+        "name": "So verglichen",
+        "comment": "Dafür gibt es das Kleinschreiben: dieselbe Stadt, und jetzt sagt es der Vergleich auch.",
+        "vars": {
+          "a": "$klein_a.body",
+          "b": "$klein_b.body"
+        },
+        "x": 768,
+        "y": 1080
+      },
+      {
+        "id": "notiz",
+        "kind": "log",
+        "name": "Log",
+        "vars": {
+          "input": "$kopf.body"
+        },
+        "data": {
+          "label": "Kopfzeile"
+        },
+        "flow": true,
+        "x": 420,
+        "y": 48
+      },
+      {
+        "id": "ende",
+        "kind": "end",
+        "name": "Ende",
+        "vars": {
+          "kopf": "$kopf.body",
+          "wieder_gelesen": "$zurueck.body",
+          "nutzlast": "$nutzlast.body",
+          "waehrung": "$code.body",
+          "roh_unterschiede": "$roh.body.count",
+          "klein_gleich": "$gleich.body.same"
+        },
+        "data": {
+          "label": "Kodiert, gelesen, verglichen"
+        },
+        "x": 768,
+        "y": 48
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "notiz"
+      },
+      {
+        "from": "notiz",
+        "to": "ende"
+      }
+    ]
+  }
+}

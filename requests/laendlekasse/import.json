@@ -6,6 +6,9 @@
       {
         "id": "start",
         "kind": "start",
+        "params": {
+          "test": ""
+        },
         "x": -492,
         "y": 24
       },
@@ -161,7 +164,8 @@
           "label": ""
         },
         "ports": [
-          "product"
+          "product",
+          "test"
         ],
         "x": 2052,
         "y": 0

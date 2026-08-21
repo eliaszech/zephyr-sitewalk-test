@@ -16,7 +16,7 @@
         "name": "Loop",
         "comment": "Die Kante von „Status“ zurück auf diesen Knoten ist die Schleife. Ohne sie liefe der Request einmal.",
         "vars": {
-          "male": "$random.body"
+          "times": "$random.body"
         },
         "data": {
           "times": "3"

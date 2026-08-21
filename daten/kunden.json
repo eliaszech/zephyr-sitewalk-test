@@ -1,0 +1,8 @@
+{
+  "stand": "2026-08-21",
+  "kunden": [
+    { "nr": 11, "name": "ada", "rolle": "admin" },
+    { "nr": 12, "name": "grace", "rolle": "gast" },
+    { "nr": 13, "name": "alan", "rolle": "gast" }
+  ]
+}

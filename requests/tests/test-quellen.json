@@ -1,0 +1,126 @@
+{
+  "type": "runbook",
+  "name": "Test Quellen",
+  "description": "Die Quellen, die nichts von aussen brauchen: eine getippte Liste, erfundene Testdaten und ein Wert aus dem Secrets-Store.\n\nNach dem Lauf steht alles im Reiter „ergebnis“ unter der Fläche — vier Felder, die das Ende eingesammelt hat. Der Token ist dort verdeckt, wie überall: maskiert wird am Wert und nicht an der Herkunft.\n\nTestdaten hängen am Würfel des Laufs: „Zurücksetzen“ gibt eine neue Adresse, zweimal Hinsehen gibt dieselbe.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "kind": "start",
+        "x": 60,
+        "y": 48
+      },
+      {
+        "id": "kennungen",
+        "kind": "list",
+        "name": "Drei Kennungen",
+        "comment": "Ein Element je Zeile. Was Sortieren, Join und die Schleife erwarten — ohne den Umweg über JSON.",
+        "data": {
+          "items": "AB-1042\nAB-9\nAB-317"
+        },
+        "x": 60,
+        "y": 264
+      },
+      {
+        "id": "geordnet",
+        "kind": "sort",
+        "name": "Sortiert",
+        "comment": "Ohne Feld: die Elemente selbst. AB-9 steht vor AB-317, weil die Zahl darin als Zahl zählt.",
+        "vars": {
+          "list": "$kennungen.body"
+        },
+        "data": {
+          "order": "auf"
+        },
+        "x": 420,
+        "y": 264
+      },
+      {
+        "id": "zeile",
+        "kind": "join",
+        "name": "Als eine Zeile",
+        "vars": {
+          "list": "$geordnet.body"
+        },
+        "data": {
+          "separator": ", "
+        },
+        "x": 768,
+        "y": 264
+      },
+      {
+        "id": "mail",
+        "kind": "faker",
+        "name": "Testnutzer",
+        "comment": "Plausibel statt „test1@test“: eine Adresse, die durch jede Prüfung geht, die man testen wollte.",
+        "data": {
+          "form": "email"
+        },
+        "x": 60,
+        "y": 444
+      },
+      {
+        "id": "konto",
+        "kind": "faker",
+        "name": "Bankverbindung",
+        "comment": "Die IBAN hat ihre Prüfziffern — eine, die daran scheitert, testet die Prüfung und nicht den Dienst.",
+        "data": {
+          "form": "iban"
+        },
+        "x": 60,
+        "y": 588
+      },
+      {
+        "id": "token",
+        "kind": "secret",
+        "name": "Token",
+        "comment": "Der eine Wert aus dem Store, mit seinem Namen im Bild — der Environment-Knoten daneben gäbe alle auf einmal.",
+        "data": {
+          "name": "token"
+        },
+        "x": 420,
+        "y": 516
+      },
+      {
+        "id": "notiz",
+        "kind": "log",
+        "name": "Log",
+        "vars": {
+          "input": "$zeile.body"
+        },
+        "data": {
+          "label": "Kennungen"
+        },
+        "flow": true,
+        "x": 420,
+        "y": 48
+      },
+      {
+        "id": "ende",
+        "kind": "end",
+        "name": "Ende",
+        "vars": {
+          "kennungen": "$zeile.body",
+          "email": "$mail.body",
+          "iban": "$konto.body",
+          "token": "$token.body"
+        },
+        "data": {
+          "label": "Vier Werte eingesammelt"
+        },
+        "x": 768,
+        "y": 48
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "notiz"
+      },
+      {
+        "from": "notiz",
+        "to": "ende"
+      }
+    ]
+  }
+}

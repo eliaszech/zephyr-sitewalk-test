@@ -45,10 +45,12 @@
       {
         "id": "warten",
         "kind": "wait",
-        "waitMs": 500,
         "comment": "Zwischen zwei Abfragen. Ohne ihn hämmert die Wiederholung auf den Endpunkt ein.",
         "x": 420,
-        "y": 552
+        "y": 552,
+        "data": {
+          "ms": "500"
+        }
       },
       {
         "id": "ende",
@@ -62,8 +64,8 @@
         "ports": [
           "durchgaenge"
         ],
-        "x": 816,
-        "y": -60
+        "x": 804,
+        "y": 144
       }
     ],
     "edges": [

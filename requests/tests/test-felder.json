@@ -1,0 +1,170 @@
+{
+  "type": "runbook",
+  "name": "Test Felder wählen",
+  "description": "Aus einer Antwort wird der Rumpf des nächsten Requests.\n\n**Behalten**: `id, kunde.name` lässt genau diese beiden stehen — verschachtelt, also `{ id, kunde: { name } }`, und in der Reihenfolge, in der sie dastehen. Wer einen Rumpf baut, bestimmt dessen Form; die Reihenfolge der Antwort ist nicht seine. Das genannte `gibtsnicht` fehlt einfach: es als `null` anzulegen hiesse, einen Wert zu behaupten, den niemand geschickt haben wollte.\n\n**Weglassen** ist der andere Weg: `intern, kunde.rolle` fallen raus, der Rest bleibt, wie er ist. Für den Fall, dass eine Antwort zwei Felder zu viel hat statt zwanzig zu wenig.\n\nUnten gilt beides **je Element einer Liste** — genau so kommen Antworten: dreissig Bestellungen, von denen jede zwei Felder beisteuern soll. Ein Element, das kein Objekt ist, wird mit seiner Stelle gemeldet.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "kind": "start",
+        "x": 60,
+        "y": 48
+      },
+      {
+        "id": "antwort",
+        "kind": "json",
+        "name": "Eine Antwort",
+        "comment": "Mehr, als der nächste Request braucht — so kommt sie zurück.",
+        "data": {
+          "value": "{\"id\": 7, \"intern\": \"x-9\", \"erstellt_am\": \"2026-08-21T09:00:00Z\", \"kunde\": {\"name\": \"ada\", \"rolle\": \"gast\", \"notiz\": \"intern\"}}"
+        },
+        "x": 60,
+        "y": 288
+      },
+      {
+        "id": "rumpf",
+        "kind": "only",
+        "name": "Für den nächsten Request",
+        "comment": "Verschachtelt und in dieser Reihenfolge. „gibtsnicht“ fehlt einfach.",
+        "vars": {
+          "input": "$antwort.body"
+        },
+        "data": {
+          "keep": "id, kunde.name, gibtsnicht"
+        },
+        "x": 420,
+        "y": 216
+      },
+      {
+        "id": "ohne_internes",
+        "kind": "only",
+        "name": "Ohne Internes",
+        "comment": "Der andere Weg: für eine Antwort, die zwei Felder zu viel hat statt zwanzig zu wenig.",
+        "vars": {
+          "input": "$antwort.body"
+        },
+        "data": {
+          "keep": "intern, kunde.notiz",
+          "mode": "weglassen"
+        },
+        "x": 420,
+        "y": 360
+      },
+      {
+        "id": "als_text",
+        "kind": "totext",
+        "name": "Als Rumpf",
+        "comment": "Eingerückt — so ginge er in den nächsten Request.",
+        "vars": {
+          "input": "$rumpf.body"
+        },
+        "data": {
+          "form": "eingerückt"
+        },
+        "x": 768,
+        "y": 264
+      },
+      {
+        "id": "liste",
+        "kind": "json",
+        "name": "Drei Bestellungen",
+        "data": {
+          "value": "[{\"id\": 1, \"intern\": \"a\", \"betrag\": 250}, {\"id\": 2, \"intern\": \"b\", \"betrag\": 40}, {\"id\": 3, \"intern\": \"c\", \"betrag\": 99}]"
+        },
+        "x": 60,
+        "y": 528
+      },
+      {
+        "id": "schlank",
+        "kind": "only",
+        "name": "Je Element",
+        "comment": "Bei einer Liste gilt es für jedes Element — genau so kommen Antworten.",
+        "vars": {
+          "input": "$liste.body"
+        },
+        "data": {
+          "keep": "id, betrag"
+        },
+        "x": 420,
+        "y": 528
+      },
+      {
+        "id": "summe",
+        "kind": "sum",
+        "name": "Zusammen",
+        "vars": {
+          "list": "$schlank.body"
+        },
+        "data": {
+          "path": "betrag"
+        },
+        "x": 768,
+        "y": 528
+      },
+      {
+        "id": "kaputt",
+        "kind": "json",
+        "name": "Eine Liste mit einem Loch",
+        "data": {
+          "value": "[{\"id\": 1}, 42]"
+        },
+        "x": 60,
+        "y": 684
+      },
+      {
+        "id": "vergeblich",
+        "kind": "only",
+        "name": "Meldet die Stelle",
+        "comment": "Absichtlich daneben: Element 1 ist kein Objekt, und das steht auch so da. Er hängt an keinem Ende.",
+        "vars": {
+          "input": "$kaputt.body"
+        },
+        "data": {
+          "keep": "id"
+        },
+        "x": 420,
+        "y": 684
+      },
+      {
+        "id": "notiz",
+        "kind": "log",
+        "name": "Log",
+        "vars": {
+          "input": "$als_text.body"
+        },
+        "data": {
+          "label": "Rumpf"
+        },
+        "flow": true,
+        "x": 420,
+        "y": 48
+      },
+      {
+        "id": "ende",
+        "kind": "end",
+        "name": "Ende",
+        "vars": {
+          "rumpf": "$rumpf.body",
+          "ohne_internes": "$ohne_internes.body",
+          "je_element": "$schlank.body",
+          "summe": "$summe.body"
+        },
+        "data": {
+          "label": "Zwei Wege, dieselbe Frage"
+        },
+        "x": 768,
+        "y": 48
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "notiz"
+      },
+      {
+        "from": "notiz",
+        "to": "ende"
+      }
+    ]
+  }
+}

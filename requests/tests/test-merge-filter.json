@@ -1,0 +1,177 @@
+{
+  "type": "runbook",
+  "name": "Test Merge und Filter",
+  "description": "Vier Bestellungen, dreimal gefiltert und zweimal zusammengelegt.\n\nNach dem Lauf steht im Reiter „ergebnis“: von vier bleiben drei ohne „ping“, davon **eine** über hundert — Nummer 4 hat gar keinen Preis und ist damit nicht teurer als hundert, aber sehr wohl kein „ping“. Genau dieser Unterschied ist der Grund für den dritten Filter: „welche haben keinen Preis?“ lässt sich mit der kurzen Form nicht fragen und mit einem Ausdruck schon.\n\nBeim Zusammenlegen gewinnt „b“: die Vorgabe bringt Währung und Kanal mit, die Bestellung überschreibt den Typ. Und zwei Listen werden aneinandergehängt statt Feld für Feld gemischt.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "kind": "start",
+        "x": 60,
+        "y": 48
+      },
+      {
+        "id": "antwort",
+        "kind": "json",
+        "name": "Vier Bestellungen",
+        "comment": "Nummer 4 ist ein Kauf ohne Preis — der Fall, an dem sich die beiden Filter unterscheiden.",
+        "data": {
+          "value": "[{\"nr\": 1, \"typ\": \"ping\"}, {\"nr\": 2, \"typ\": \"kauf\", \"preis\": 250}, {\"nr\": 3, \"typ\": \"kauf\", \"preis\": 40}, {\"nr\": 4, \"typ\": \"kauf\"}]"
+        },
+        "x": 60,
+        "y": 264
+      },
+      {
+        "id": "ohne_ping",
+        "kind": "filter",
+        "name": "Ohne Ping",
+        "comment": "Die kurze Form, dieselbe wie an einer Kante. Wer kein Feld „typ“ hat, ist damit auch kein Ping.",
+        "vars": {
+          "list": "$antwort.body"
+        },
+        "data": {
+          "where": "typ != \"ping\""
+        },
+        "x": 420,
+        "y": 264
+      },
+      {
+        "id": "teuer",
+        "kind": "filter",
+        "name": "Über hundert",
+        "comment": "Zahlen werden als Zahlen verglichen. Nummer 4 fällt weg: was keinen Preis hat, ist nicht teurer als hundert.",
+        "vars": {
+          "list": "$ohne_ping.body.items"
+        },
+        "data": {
+          "where": "preis > 100"
+        },
+        "x": 768,
+        "y": 264
+      },
+      {
+        "id": "ohne_preis",
+        "kind": "filter",
+        "name": "Ohne Preis",
+        "comment": "Als Ausdruck, weil die kurze Form nach „gibt es das Feld überhaupt“ nicht fragen kann. „item“ ist das Element.",
+        "vars": {
+          "list": "$antwort.body"
+        },
+        "data": {
+          "where": "item.preis === undefined"
+        },
+        "x": 420,
+        "y": 444
+      },
+      {
+        "id": "vorgabe",
+        "kind": "json",
+        "name": "Vorgabe",
+        "comment": "Was jede Bestellung mitbekommt — einmal hingeschrieben statt in jeder Zeile.",
+        "data": {
+          "value": "{\"waehrung\": \"CHF\", \"kanal\": \"test\", \"typ\": \"vorgabe\"}"
+        },
+        "x": 768,
+        "y": 600
+      },
+      {
+        "id": "erste",
+        "kind": "extract",
+        "name": "Die teuerste",
+        "vars": {
+          "input": "$teuer.body.items"
+        },
+        "data": {
+          "path": "0"
+        },
+        "x": 1116,
+        "y": 264
+      },
+      {
+        "id": "zusammen",
+        "kind": "merge",
+        "name": "Vorgabe + Bestellung",
+        "comment": "„b“ gewinnt: der Typ kommt aus der Bestellung, Währung und Kanal aus der Vorgabe.",
+        "vars": {
+          "a": "$vorgabe.body",
+          "b": "$erste.body"
+        },
+        "x": 1116,
+        "y": 444
+      },
+      {
+        "id": "links",
+        "kind": "list",
+        "name": "Erste Hälfte",
+        "data": {
+          "items": "AB-1\nAB-2"
+        },
+        "x": 60,
+        "y": 612
+      },
+      {
+        "id": "rechts",
+        "kind": "list",
+        "name": "Zweite Hälfte",
+        "data": {
+          "items": "AB-3"
+        },
+        "x": 60,
+        "y": 756
+      },
+      {
+        "id": "kette",
+        "kind": "merge",
+        "name": "Aneinander",
+        "comment": "Zwei Listen werden hintereinandergehängt — Feld für Feld mischen gilt nur für Objekte.",
+        "vars": {
+          "a": "$links.body",
+          "b": "$rechts.body"
+        },
+        "x": 420,
+        "y": 684
+      },
+      {
+        "id": "notiz",
+        "kind": "log",
+        "name": "Log",
+        "vars": {
+          "input": "$zusammen.body"
+        },
+        "data": {
+          "label": "Bestellung"
+        },
+        "flow": true,
+        "x": 420,
+        "y": 48
+      },
+      {
+        "id": "ende",
+        "kind": "end",
+        "name": "Ende",
+        "vars": {
+          "ohne_ping": "$ohne_ping.body.count",
+          "ueber_hundert": "$teuer.body.count",
+          "ohne_preis": "$ohne_preis.body.items",
+          "bestellung": "$zusammen.body",
+          "kette": "$kette.body"
+        },
+        "data": {
+          "label": "Gefiltert und zusammengelegt"
+        },
+        "x": 768,
+        "y": 48
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "notiz"
+      },
+      {
+        "from": "notiz",
+        "to": "ende"
+      }
+    ]
+  }
+}

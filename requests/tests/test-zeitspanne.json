@@ -1,0 +1,182 @@
+{
+  "type": "runbook",
+  "name": "Test Zeitspanne und Anfang gross",
+  "description": "Zwei Zeitstempel aus derselben Antwort, dreimal gefragt.\n\nDie **Spanne** zwischen Bestellung und Lieferung ist 3.5 Tage; der Ausgang „value“ zählt in der gewählten Einheit, „text“ schreibt sie aus — **zwei Einheiten und nicht fünf**, denn „3 Tage 12 Std 0 Min 0 Sek 0 ms“ liest niemand. Daneben dieselbe Spanne in Stunden, ohne Rundung: 84.\n\nUnten läuft es **rückwärts**: die Stornierung liegt vor der Bestellung, und die Spanne ist negativ. Das ist eine Auskunft und kein Fehler — der Betrag daneben macht daraus die Zahl, mit der man vergleicht.\n\n**Anfang gross** macht aus „ada lovelace“ ein „Ada Lovelace“, und zwar jedes Wort. Der Rest bleibt: aus „McDonald“ würde sonst ein „Mcdonald“. Wer „MAX“ zu „Max“ will, schickt ihn vorher durch die Kleinbuchstaben — zwei Fragen, zwei Knoten, und beide stehen unten nebeneinander.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "kind": "start",
+        "x": 60,
+        "y": 48
+      },
+      {
+        "id": "bestellung",
+        "kind": "json",
+        "name": "Eine Bestellung",
+        "data": {
+          "value": "{\"kunde\": \"ada lovelace\", \"bestellt_am\": \"2026-08-01T10:00:00Z\", \"geliefert_am\": \"2026-08-04T22:00:00Z\", \"storniert_am\": \"2026-07-30T08:00:00Z\"}"
+        },
+        "x": 60,
+        "y": 288
+      },
+      {
+        "id": "dauer",
+        "kind": "span",
+        "name": "In Tagen",
+        "comment": "„value“ zählt in Tagen, „text“ schreibt aus. Gerundet wird nicht — dafür steht der Rund-Knoten daneben.",
+        "vars": {
+          "from": "$bestellung.body.bestellt_am",
+          "to": "$bestellung.body.geliefert_am"
+        },
+        "data": {
+          "unit": "d"
+        },
+        "x": 420,
+        "y": 216
+      },
+      {
+        "id": "stunden",
+        "kind": "span",
+        "name": "In Stunden",
+        "comment": "Dieselbe Spanne, andere Einheit — 84 statt 3.5.",
+        "vars": {
+          "from": "$bestellung.body.bestellt_am",
+          "to": "$bestellung.body.geliefert_am"
+        },
+        "data": {
+          "unit": "h"
+        },
+        "x": 420,
+        "y": 348
+      },
+      {
+        "id": "rueckwaerts",
+        "kind": "span",
+        "name": "Rückwärts",
+        "comment": "Die Stornierung liegt vor der Bestellung: negativ, und das ist die Auskunft.",
+        "vars": {
+          "from": "$bestellung.body.bestellt_am",
+          "to": "$bestellung.body.storniert_am"
+        },
+        "data": {
+          "unit": "h"
+        },
+        "x": 420,
+        "y": 480
+      },
+      {
+        "id": "wie_weit",
+        "kind": "abs",
+        "name": "Wie weit auseinander",
+        "comment": "Ohne Vorzeichen — damit lässt sich vergleichen.",
+        "vars": {
+          "input": "$rueckwaerts.body.value"
+        },
+        "x": 768,
+        "y": 480
+      },
+      {
+        "id": "name",
+        "kind": "capitalize",
+        "name": "Als Anrede",
+        "comment": "Jedes Wort, nicht nur das erste.",
+        "vars": {
+          "text": "$bestellung.body.kunde"
+        },
+        "x": 420,
+        "y": 624
+      },
+      {
+        "id": "geschrien",
+        "kind": "string",
+        "name": "Aus einem Altsystem",
+        "data": {
+          "value": "MAX MUSTERMANN"
+        },
+        "x": 60,
+        "y": 768
+      },
+      {
+        "id": "klein",
+        "kind": "lower",
+        "name": "Erst klein",
+        "comment": "Der eine Handgriff …",
+        "vars": {
+          "text": "$geschrien.body"
+        },
+        "x": 420,
+        "y": 768
+      },
+      {
+        "id": "gerichtet",
+        "kind": "capitalize",
+        "name": "… dann Anfang gross",
+        "comment": "… und der andere. Zusammen wird aus MAX MUSTERMANN ein Max Mustermann.",
+        "vars": {
+          "text": "$klein.body"
+        },
+        "x": 768,
+        "y": 768
+      },
+      {
+        "id": "zeile",
+        "kind": "template",
+        "name": "Als Satz",
+        "vars": {
+          "kunde": "$name.body",
+          "dauer": "$dauer.body.text"
+        },
+        "data": {
+          "text": "{{kunde}} hat {{dauer}} auf die Lieferung gewartet"
+        },
+        "x": 768,
+        "y": 216
+      },
+      {
+        "id": "notiz",
+        "kind": "log",
+        "name": "Log",
+        "vars": {
+          "input": "$zeile.body"
+        },
+        "data": {
+          "label": "Lieferung"
+        },
+        "flow": true,
+        "x": 420,
+        "y": 48
+      },
+      {
+        "id": "ende",
+        "kind": "end",
+        "name": "Ende",
+        "vars": {
+          "tage": "$dauer.body.value",
+          "ausgeschrieben": "$dauer.body.text",
+          "stunden": "$stunden.body.value",
+          "rueckwaerts": "$rueckwaerts.body.text",
+          "abstand_stunden": "$wie_weit.body",
+          "anrede": "$name.body",
+          "gerichtet": "$gerichtet.body",
+          "satz": "$zeile.body"
+        },
+        "data": {
+          "label": "Dreieinhalb Tage"
+        },
+        "x": 768,
+        "y": 48
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "notiz"
+      },
+      {
+        "from": "notiz",
+        "to": "ende"
+      }
+    ]
+  }
+}

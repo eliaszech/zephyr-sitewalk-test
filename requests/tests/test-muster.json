@@ -1,0 +1,166 @@
+{
+  "type": "runbook",
+  "name": "Test Muster",
+  "description": "Drei Werte aus Text, wo kein JSON-Pfad hinführt.\n\nAus einer HTML-Seite das **CSRF-Token**: die Klammer ist benannt, deshalb steht sie als „groups.token“ da und nicht als „groups.0“. Aus einer **Weiterleitung** die Kennung hinter dem letzten Schrägstrich. Und aus einer **Fehlermeldung** alle Feldnamen auf einmal — mit „g“ sammelt „all“ jeden Treffer, ohne „g“ steht dort genau einer.\n\nKein Treffer ist ein **Fehler**, wie bei einem Extract, dessen Pfad ins Leere zeigt: ein stilles Nichts liefe weiter und fiele erst drei Schritte später auf. Der Knoten unten rechts sucht deshalb absichtlich etwas, das es nicht gibt — er steht nach dem Lauf in Rot da, und das ist die Absicht.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "kind": "start",
+        "x": 60,
+        "y": 48
+      },
+      {
+        "id": "seite",
+        "kind": "string",
+        "name": "Ein Stück HTML",
+        "data": {
+          "value": "<form><input type=\"hidden\" name=\"csrf\" value=\"a1b2c3\"><input name=\"user\" value=\"ada\"></form>"
+        },
+        "x": 60,
+        "y": 264
+      },
+      {
+        "id": "token",
+        "kind": "regex",
+        "name": "CSRF-Token",
+        "comment": "Benannte Klammer: der Wert steht unter „groups.token“ und nicht unter einer Nummer, die man mitzählen müsste.",
+        "vars": {
+          "input": "$seite.body"
+        },
+        "data": {
+          "pattern": "name=\"csrf\" value=\"(?<token>[^\"]+)\""
+        },
+        "x": 420,
+        "y": 264
+      },
+      {
+        "id": "kopf",
+        "kind": "template",
+        "name": "Als Kopfzeile",
+        "vars": {
+          "csrf": "$token.body.groups.token"
+        },
+        "data": {
+          "text": "X-CSRF-Token: {{csrf}}"
+        },
+        "x": 768,
+        "y": 264
+      },
+      {
+        "id": "weiterleitung",
+        "kind": "string",
+        "name": "Location-Kopf",
+        "data": {
+          "value": "https://api.test/v2/bestellungen/4711?quelle=web"
+        },
+        "x": 60,
+        "y": 432
+      },
+      {
+        "id": "kennung",
+        "kind": "regex",
+        "name": "Die Kennung",
+        "comment": "Ohne „g“: gefragt ist der eine Wert. „all“ steht trotzdem da, mit genau einem Eintrag.",
+        "vars": {
+          "input": "$weiterleitung.body"
+        },
+        "data": {
+          "pattern": "/([0-9]+)(?:\\?|$)"
+        },
+        "x": 420,
+        "y": 432
+      },
+      {
+        "id": "meldung",
+        "kind": "string",
+        "name": "Eine Fehlermeldung",
+        "data": {
+          "value": "Feld 'email' fehlt, Feld 'plz' ist ungültig, Feld 'ort' fehlt"
+        },
+        "x": 60,
+        "y": 600
+      },
+      {
+        "id": "felder",
+        "kind": "regex",
+        "name": "Alle Feldnamen",
+        "comment": "Mit „g“: „all“ sammelt jeden Treffer, „match“ bleibt der erste.",
+        "vars": {
+          "input": "$meldung.body"
+        },
+        "data": {
+          "pattern": "Feld '([a-z]+)'",
+          "flags": "g"
+        },
+        "x": 420,
+        "y": 600
+      },
+      {
+        "id": "wie_viele",
+        "kind": "count",
+        "name": "So viele",
+        "vars": {
+          "input": "$felder.body.all"
+        },
+        "x": 768,
+        "y": 600
+      },
+      {
+        "id": "vergeblich",
+        "kind": "regex",
+        "name": "Trifft nichts",
+        "comment": "Absichtlich daneben: kein Treffer ist ein Fehler und kein stilles Nichts. Er hängt an keinem Ende — der Lauf geht ihn nichts an.",
+        "vars": {
+          "input": "$meldung.body"
+        },
+        "data": {
+          "pattern": "Warnung: (.+)"
+        },
+        "x": 420,
+        "y": 744
+      },
+      {
+        "id": "notiz",
+        "kind": "log",
+        "name": "Log",
+        "vars": {
+          "input": "$kopf.body"
+        },
+        "data": {
+          "label": "Kopfzeile"
+        },
+        "flow": true,
+        "x": 420,
+        "y": 48
+      },
+      {
+        "id": "ende",
+        "kind": "end",
+        "name": "Ende",
+        "vars": {
+          "csrf": "$token.body.groups.token",
+          "kopfzeile": "$kopf.body",
+          "bestellung": "$kennung.body.groups.0",
+          "felder": "$felder.body.all",
+          "anzahl_felder": "$wie_viele.body"
+        },
+        "data": {
+          "label": "Drei Werte aus Text"
+        },
+        "x": 768,
+        "y": 48
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "notiz"
+      },
+      {
+        "from": "notiz",
+        "to": "ende"
+      }
+    ]
+  }
+}

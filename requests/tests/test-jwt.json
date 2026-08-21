@@ -1,0 +1,195 @@
+{
+  "type": "runbook",
+  "name": "Test JWT",
+  "description": "Beide Richtungen an einem Bild: ein Token schreiben und eines lesen.\n\n**Signiert wird mit HS256**, dem gemeinsamen Geheimnis — der Schlüssel kommt aus dem Secrets-Store und ist deshalb überall verdeckt. RS256 und ES256 stehen in der Auswahl, können aber noch nicht: sie brauchen asymmetrische Schlüssel, und die rechnet der Browser nur asynchron, während eine Formel auf nichts wartet. Der Knoten unten wählt mit Absicht RS256 und sagt genau das.\n\n**Erfunden wird nichts.** Weder `iat` noch `exp` setzt der Knoten von selbst — was im Token steht, steht am Eingang. Den Ablauf rechnet hier der Zeit-Knoten: jetzt plus eine Stunde, als Unix-Sekunde.\n\n**Gelesen wird ohne zu prüfen.** Ein JWT ist nicht verschlüsselt, jeder kann hineinsehen — und genau das tut der Lese-Knoten. Ob die Signatur stimmt, kann nur beantworten, wer den Schlüssel hat; das lässt man den Dienst entscheiden.\n\n`exp` kommt als Unix-Sekunde heraus, wie es im Token steht. Ob es abgelaufen ist, entscheidet die Bedingung rechts — gegen den Augenblick des Laufs und nicht gegen die Uhr beim Hinsehen.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "kind": "start",
+        "x": 60,
+        "y": 48
+      },
+      {
+        "id": "jetzt",
+        "kind": "time",
+        "name": "Jetzt",
+        "x": 60,
+        "y": 216
+      },
+      {
+        "id": "gueltig_bis",
+        "kind": "time",
+        "name": "Eine Stunde später",
+        "comment": "Der Ablauf kommt aus dem Zeit-Knoten und nicht aus dem Token-Knoten: der erfindet nichts.",
+        "data": {
+          "shift": "+1h"
+        },
+        "x": 60,
+        "y": 360
+      },
+      {
+        "id": "claims",
+        "kind": "template",
+        "name": "Die Claims",
+        "comment": "Als JSON hingeschrieben — was im Token stehen soll, steht hier.",
+        "vars": {
+          "exp": "$gueltig_bis.body.unix"
+        },
+        "data": {
+          "text": "{\"sub\": \"nutzer-4711\", \"rolle\": \"pruefer\", \"exp\": {{exp}}}"
+        },
+        "x": 420,
+        "y": 288
+      },
+      {
+        "id": "schluessel",
+        "kind": "secret",
+        "name": "Der Schlüssel",
+        "comment": "Aus dem Store — und damit überall verdeckt, auch im fertigen Token.",
+        "data": {
+          "name": "token"
+        },
+        "x": 420,
+        "y": 456
+      },
+      {
+        "id": "signiert",
+        "kind": "jwtsign",
+        "name": "Token schreiben",
+        "comment": "HS256: Kopf und Rumpf base64url, darüber ein HMAC mit dem Schlüssel.",
+        "vars": {
+          "payload": "$claims.body",
+          "key": "$schluessel.body"
+        },
+        "data": {
+          "algo": "HS256"
+        },
+        "x": 768,
+        "y": 288
+      },
+      {
+        "id": "kopfzeile",
+        "kind": "template",
+        "name": "Als Kopfzeile",
+        "vars": {
+          "token": "$signiert.body"
+        },
+        "data": {
+          "text": "Authorization: Bearer {{token}}"
+        },
+        "x": 1116,
+        "y": 168
+      },
+      {
+        "id": "gelesen",
+        "kind": "jwt",
+        "name": "Token lesen",
+        "comment": "Ohne Schlüssel und ohne Prüfung: ein JWT ist nicht verschlüsselt.",
+        "vars": {
+          "token": "$signiert.body"
+        },
+        "x": 1116,
+        "y": 336
+      },
+      {
+        "id": "noch_gueltig",
+        "kind": "condition",
+        "name": "Noch gültig?",
+        "comment": "Gegen den Augenblick des Laufs — nicht gegen die Uhr beim Hinsehen.",
+        "vars": {
+          "exp": "$gelesen.body.exp",
+          "jetzt": "$jetzt.body.unix"
+        },
+        "data": {
+          "expr": "exp > jetzt"
+        },
+        "x": 1464,
+        "y": 336
+      },
+      {
+        "id": "gut",
+        "kind": "log",
+        "name": "Gültig",
+        "vars": {
+          "sub": "$gelesen.body.payload.sub",
+          "rolle": "$gelesen.body.payload.rolle"
+        },
+        "data": {
+          "label": "Token"
+        },
+        "flow": true,
+        "x": 1812,
+        "y": 288
+      },
+      {
+        "id": "abgelaufen",
+        "kind": "log",
+        "name": "Abgelaufen",
+        "vars": {
+          "exp": "$gelesen.body.exp"
+        },
+        "data": {
+          "label": "zu spät"
+        },
+        "flow": true,
+        "x": 1812,
+        "y": 432
+      },
+      {
+        "id": "kann_er_nicht",
+        "kind": "jwtsign",
+        "name": "Absichtlich RS256",
+        "comment": "Steht in der Auswahl, kann er aber nicht — und sagt genau das, statt still etwas anderes zu tun.",
+        "vars": {
+          "payload": "$claims.body",
+          "key": "$schluessel.body"
+        },
+        "data": {
+          "algo": "RS256"
+        },
+        "x": 768,
+        "y": 600
+      },
+      {
+        "id": "ende",
+        "kind": "end",
+        "name": "Ende",
+        "vars": {
+          "kopfzeile": "$kopfzeile.body",
+          "sub": "$gelesen.body.payload.sub",
+          "rolle": "$gelesen.body.payload.rolle",
+          "exp": "$gelesen.body.exp",
+          "verfahren": "$gelesen.body.header.alg"
+        },
+        "data": {
+          "label": "Geschrieben und wieder gelesen"
+        },
+        "x": 2160,
+        "y": 48
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "noch_gueltig"
+      },
+      {
+        "from": "noch_gueltig.then",
+        "to": "gut"
+      },
+      {
+        "from": "noch_gueltig.else",
+        "to": "abgelaufen"
+      },
+      {
+        "from": "gut",
+        "to": "ende"
+      },
+      {
+        "from": "abgelaufen",
+        "to": "ende"
+      }
+    ]
+  }
+}

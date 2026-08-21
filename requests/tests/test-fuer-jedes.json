@@ -1,0 +1,125 @@
+{
+  "type": "runbook",
+  "name": "Test Für jedes",
+  "description": "Endlich geht der Ablauf über eine Liste. Bisher konnte die Schleife nur zählen — „für jede Bestellung einen Schritt“ hiess: Zahlenreihe bauen, mitzählen, das Element per Extract am Index herausholen. Jetzt trägt der Knoten es selbst: an „each“ steht das Element, an „index“ seine Stelle.\n\n**Die Stelle zählt ab null**, denn sie ist eine Stelle in einer Liste und keine Ordnungszahl — wie am Extract, am Map und am Zufallselement. Im Statustext steht dafür „Element 1 von 3“, so wie ein Mensch zählt.\n\n**Die Liste steht beim ersten Ankommen fest.** Sie bei jedem Durchgang neu zu lesen hiesse, dass eine Antwort mitten im Lauf die Stellen verschiebt.\n\nDie Rückkante vom Log zurück auf den Knoten **ist** die Schleife — dieselbe Mechanik wie bei „Schleife“ und „Bis“, kein Bereich, den man aufzieht. Nach dem Lauf steht in der Zeitleiste dreimal „Element … von 3“ und einmal „3 Elemente“: drei Durchgänge und die Entscheidung, dass Schluss ist.\n\nDer zweite Strang unten geht über eine **leere** Liste und damit gleich auf „done“ — kein Durchgang ist kein Fehler.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "kind": "start",
+        "x": 60,
+        "y": 48
+      },
+      {
+        "id": "antwort",
+        "kind": "json",
+        "name": "Drei Bestellungen",
+        "comment": "Steht für das, was ein Request zurückgibt.",
+        "data": {
+          "value": "[{\"nr\": 11, \"kunde\": \"ada\"}, {\"nr\": 12, \"kunde\": \"grace\"}, {\"nr\": 13, \"kunde\": \"alan\"}]"
+        },
+        "x": 60,
+        "y": 216
+      },
+      {
+        "id": "jede",
+        "kind": "foreach",
+        "name": "Für jede Bestellung",
+        "comment": "Die Kante vom Log zurück hierher ist die Schleife. „each“ trägt das Element, „index“ die Stelle — ab null.",
+        "vars": {
+          "list": "$antwort.body"
+        },
+        "x": 408,
+        "y": 108
+      },
+      {
+        "id": "zeile",
+        "kind": "template",
+        "name": "Eine Zeile daraus",
+        "comment": "Liest das Element des laufenden Durchgangs — im nächsten steht dort das nächste.",
+        "vars": {
+          "nr": "$jede.body.each.nr",
+          "kunde": "$jede.body.each.kunde",
+          "stelle": "$jede.body.index"
+        },
+        "data": {
+          "text": "[{{stelle}}] Bestellung {{nr}} von {{kunde}}"
+        },
+        "x": 768,
+        "y": 336
+      },
+      {
+        "id": "notiz",
+        "kind": "log",
+        "name": "Je Durchgang eine Zeile",
+        "comment": "Im Ablauf: er schreibt bei jedem Vorbeikommen. Von hier führt die Rückkante auf „Für jede Bestellung“.",
+        "vars": {
+          "input": "$zeile.body"
+        },
+        "data": {
+          "label": "Bestellung"
+        },
+        "flow": true,
+        "x": 768,
+        "y": 216
+      },
+      {
+        "id": "leere",
+        "kind": "json",
+        "name": "Eine leere Liste",
+        "data": {
+          "value": "[]"
+        },
+        "x": 60,
+        "y": 528
+      },
+      {
+        "id": "nichts",
+        "kind": "foreach",
+        "name": "Für jedes von nichts",
+        "comment": "Geht gleich auf „done“: kein Durchgang ist kein Fehler.",
+        "vars": {
+          "list": "$leere.body"
+        },
+        "x": 420,
+        "y": 528
+      },
+      {
+        "id": "ende",
+        "kind": "end",
+        "name": "Ende",
+        "vars": {
+          "durchgegangen": "$jede.body.index",
+          "leer_durchgegangen": "$nichts.body.index"
+        },
+        "data": {
+          "label": "Drei Bestellungen, kein Rest"
+        },
+        "x": 1116,
+        "y": 48
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "jede"
+      },
+      {
+        "from": "jede.each",
+        "to": "notiz"
+      },
+      {
+        "from": "notiz",
+        "to": "jede"
+      },
+      {
+        "from": "jede.done",
+        "to": "nichts"
+      },
+      {
+        "from": "nichts.done",
+        "to": "ende"
+      }
+    ]
+  }
+}

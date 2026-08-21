@@ -1,0 +1,195 @@
+{
+  "type": "runbook",
+  "name": "Test Request überschreiben",
+  "description": "Vier Anschlüsse, mit denen der Graph in einen Request hineinredet: **@query**, **@headers**, **@body** und **@auth**. Sie stehen nicht in der Registry und nicht in der Request-Datei — angeschaltet werden sie im Inspektor unter „überschreiben“, und danach sind es Eingänge wie alle anderen.\n\n**Das Klammeraffen-Zeichen trennt sie von den Platzhaltern.** Die Eingänge eines Request-Knotens sind sonst die `{{namen}}` seiner Datei; ein Request mit `{{body}}` in der URL hätte sonst zwei Eingänge namens „body“, von denen einer etwas ganz anderes meint.\n\n**Ergänzt wird, was aufzählbar ist, ersetzt, was eines ist.** Query und Header legen sich Zeile für Zeile über die der Datei — gleicher Name gewinnt, der Rest kommt dazu. Rumpf und Anmeldung sind je ein Ding; sie halb zu übernehmen vermischte zwei Absichten.\n\nOben derselbe Request dreimal: einmal roh, einmal mit Query, einmal mit Kopfzeilen und Token. An der Karte steht jeweils die Adresse, wie sie herausginge — daran sieht man, dass die Query wirklich angehängt wird, ohne den Request zu öffnen.\n\n**Was über eine Leitung kommt, wird nicht eingesetzt.** Ein `{{name}}` in einem überschriebenen Rumpf ist ein Text, den jemand geschickt hat, und keine Anweisung an uns — dieselbe Unterscheidung wie bei den Escapes an den Textknoten. Der Rumpf unten zeigt das: er trägt die Zeichen und behält sie.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "kind": "start",
+        "x": 60,
+        "y": 48
+      },
+      {
+        "id": "env",
+        "kind": "env",
+        "name": "Environment",
+        "x": 60,
+        "y": 192
+      },
+      {
+        "id": "roh",
+        "request": "requests/laendlekasse/produkte.json",
+        "name": "Ohne alles",
+        "comment": "Der Vergleichsfall: so geht der Request hinaus, wie die Datei ihn beschreibt.",
+        "vars": {
+          "base_url": "$env.body.base_url"
+        },
+        "x": 480,
+        "y": 48
+      },
+      {
+        "id": "query",
+        "kind": "json",
+        "name": "Die Query",
+        "comment": "Ein Objekt reicht — Liste von Paaren und „a=1&b=2“ gehen auch.",
+        "data": {
+          "value": "{\n  \"limit\": 3,\n  \"page\": 2\n}"
+        },
+        "x": 480,
+        "y": 288
+      },
+      {
+        "id": "mit_query",
+        "request": "requests/laendlekasse/produkte.json",
+        "name": "Mit Query",
+        "comment": "An der Karte steht die Adresse samt ?limit=3&page=2 — ohne den Request zu öffnen.",
+        "vars": {
+          "base_url": "$env.body.base_url",
+          "@query": "$query.body"
+        },
+        "ports": [
+          "@query"
+        ],
+        "x": 900,
+        "y": 288
+      },
+      {
+        "id": "kopf",
+        "kind": "json",
+        "name": "Die Kopfzeilen",
+        "comment": "„Accept“ steht auch in der Datei — gleicher Name, und der aus dem Graphen gewinnt.",
+        "data": {
+          "value": "{\n  \"X-Test\": \"zephyr\",\n  \"Accept\": \"application/json\"\n}"
+        },
+        "x": 480,
+        "y": 528
+      },
+      {
+        "id": "token",
+        "kind": "string",
+        "name": "Der Token",
+        "comment": "Ein Text ist ein Bearer-Token; ein „Bearer “ davor wird abgeschnitten. Ein Objekt wäre ein Preset wie in der Datei, und {access_token} versteht er ebenfalls.",
+        "data": {
+          "value": "geheim-4711"
+        },
+        "x": 480,
+        "y": 672
+      },
+      {
+        "id": "mit_kopf",
+        "request": "requests/laendlekasse/produkte.json",
+        "name": "Mit Kopf und Token",
+        "comment": "Aus dem Token wird „Authorization: Bearer …“ — dieselbe Rechnung wie beim Preset in der Datei.",
+        "vars": {
+          "base_url": "$env.body.base_url",
+          "@headers": "$kopf.body",
+          "@auth": "$token.body"
+        },
+        "ports": [
+          "@headers",
+          "@auth"
+        ],
+        "x": 900,
+        "y": 528
+      },
+      {
+        "id": "rumpf",
+        "kind": "template",
+        "name": "Der Rumpf",
+        "comment": "Mit Absicht mit geschweiften Klammern: was über eine Leitung kommt, wird nicht eingesetzt.",
+        "vars": {
+          "input": "$env.body.base_url"
+        },
+        "data": {
+          "text": "{\"quelle\": \"{{input}}\", \"unangetastet\": \"{{gibt_es_nicht}}\"}"
+        },
+        "x": 900,
+        "y": 816
+      },
+      {
+        "id": "mit_rumpf",
+        "request": "requests/laendlekasse/status.json",
+        "name": "Mit Rumpf",
+        "comment": "Der ganze Rumpf, nicht ein Teil davon — und der Content-Type richtet sich danach.",
+        "vars": {
+          "base_url": "$env.body.base_url",
+          "@body": "$rumpf.body"
+        },
+        "ports": [
+          "@body"
+        ],
+        "x": 1320,
+        "y": 816
+      },
+      {
+        "id": "anzahl",
+        "kind": "count",
+        "name": "So viele kamen",
+        "vars": {
+          "list": "$mit_query.body.data"
+        },
+        "x": 1320,
+        "y": 288
+      },
+      {
+        "id": "notiz",
+        "kind": "log",
+        "name": "Was herauskam",
+        "vars": {
+          "roh": "$roh.status",
+          "query": "$mit_query.status",
+          "kopf": "$mit_kopf.status",
+          "anzahl": "$anzahl.body"
+        },
+        "data": {
+          "label": "Überschrieben",
+          "text": "roh {{roh}} · query {{query}} ({{anzahl}} Stück) · kopf {{kopf}}"
+        },
+        "flow": true,
+        "x": 1740,
+        "y": 48
+      },
+      {
+        "id": "ende",
+        "kind": "end",
+        "name": "Ende",
+        "vars": {
+          "adresse": "$mit_query.body",
+          "anzahl": "$anzahl.body"
+        },
+        "data": {
+          "label": "Vier Anschlüsse, ein Request"
+        },
+        "x": 2160,
+        "y": 48
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "roh"
+      },
+      {
+        "from": "roh.success",
+        "to": "mit_query"
+      },
+      {
+        "from": "mit_query.success",
+        "to": "mit_kopf"
+      },
+      {
+        "from": "mit_kopf.success",
+        "to": "mit_rumpf"
+      },
+      {
+        "from": "mit_rumpf.success",
+        "to": "notiz"
+      },
+      {
+        "from": "notiz",
+        "to": "ende"
+      }
+    ]
+  }
+}

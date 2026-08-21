@@ -1,0 +1,170 @@
+{
+  "type": "runbook",
+  "name": "Test DNS",
+  "description": "Wohin zeigt der Name?\n\nGefragt wird der **Resolver des Systems** und kein eigener Server. Ein Runbook soll sehen, was die Anwendung daneben auch sieht: dieselbe hosts-Datei, dieselbe Suchdomäne, derselbe Firmen-Resolver. Ein fest eingebauter 8.8.8.8 beantwortete eine andere Frage als die, wohin *dieser* Rechner seinen Request schickt — und genau die stellt man, wenn ein Test auf dem einen Rechner läuft und auf dem anderen nicht.\n\n**Adressen geben nur A und AAAA.** Bei CNAME, MX und TXT bleibt „addresses“ leer, und „records“ trägt die Einträge als Text — ein MX ist „10 mail.example.com“.\n\n**Nichts gefunden ist kein Fehler, sondern das Ergebnis.** Der Knoten unten fragt mit Absicht nach einem Namen, den es nicht gibt: er läuft grün durch, sagt `ok = false` und nennt den Grund. Verzweigt wird danach mit einer Bedingung — das DNS antwortet, sie entscheidet.\n\nDaneben der Ping: erst der Name, dann der Handschlag. Zusammen beantworten die beiden „liegt es am Netz?“ — die Frage, mit der jede Fehlersuche anfängt.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "kind": "start",
+        "x": 60,
+        "y": 48
+      },
+      {
+        "id": "name",
+        "kind": "string",
+        "name": "Der Name",
+        "comment": "Der Name, nicht die Adresse — an einer Stelle, damit DNS und Ping denselben fragen.",
+        "data": {
+          "value": "example.com"
+        },
+        "x": 60,
+        "y": 216
+      },
+      {
+        "id": "aufloesung",
+        "kind": "dns",
+        "name": "Welche Adresse?",
+        "comment": "A: „addresses“ und „records“ tragen dasselbe — wer nach A fragt, will beides am selben Knoten finden.",
+        "vars": {
+          "host": "$name.body"
+        },
+        "data": {
+          "type": "A"
+        },
+        "x": 420,
+        "y": 48
+      },
+      {
+        "id": "post",
+        "kind": "dns",
+        "name": "Wer nimmt die Post?",
+        "comment": "MX: hier bleibt „addresses“ leer, und die Einträge stehen als Text da — „10 mail.example.com“.",
+        "vars": {
+          "host": "$name.body"
+        },
+        "data": {
+          "type": "MX"
+        },
+        "x": 420,
+        "y": 336
+      },
+      {
+        "id": "erste_adresse",
+        "kind": "extract",
+        "name": "Die erste",
+        "vars": {
+          "input": "$aufloesung.body.addresses"
+        },
+        "data": {
+          "path": "0"
+        },
+        "x": 768,
+        "y": 48
+      },
+      {
+        "id": "erreichbar",
+        "kind": "ping",
+        "name": "Und nimmt sie ab?",
+        "comment": "Erst der Name, dann der Handschlag: zusammen beantworten die beiden „liegt es am Netz?“.",
+        "vars": {
+          "host": "$erste_adresse.body"
+        },
+        "data": {
+          "count": "1"
+        },
+        "x": 1116,
+        "y": 48
+      },
+      {
+        "id": "gibts_nicht",
+        "kind": "dns",
+        "name": "Absichtlich ins Leere",
+        "comment": "Diesen Namen gibt es nicht. Der Knoten läuft trotzdem grün durch — „den gibt es nicht“ ist die Auskunft, nach der jemand fragt.",
+        "data": {
+          "host": "gibtsganzsicherht.invalid",
+          "type": "A"
+        },
+        "x": 420,
+        "y": 612
+      },
+      {
+        "id": "gefunden",
+        "kind": "condition",
+        "name": "Gefunden?",
+        "comment": "Verzweigt wird mit einer Bedingung und nicht am DNS selbst: es antwortet, sie entscheidet.",
+        "vars": {
+          "input": "$gibts_nicht.body.ok"
+        },
+        "x": 756,
+        "y": 384
+      },
+      {
+        "id": "gemeldet",
+        "kind": "log",
+        "name": "Was der Grund war",
+        "vars": {
+          "grund": "$gibts_nicht.body.reason",
+          "ms": "$gibts_nicht.body.ms"
+        },
+        "data": {
+          "label": "kein Eintrag"
+        },
+        "flow": true,
+        "x": 1116,
+        "y": 456
+      },
+      {
+        "id": "ende",
+        "kind": "end",
+        "name": "Ende",
+        "vars": {
+          "adressen": "$aufloesung.body.addresses",
+          "dauer_ms": "$aufloesung.body.ms",
+          "post": "$post.body.records",
+          "erreichbar": "$erreichbar.body.ok",
+          "erfunden_ok": "$gibts_nicht.body.ok"
+        },
+        "data": {
+          "label": "Name, Post, Handschlag"
+        },
+        "x": 1464,
+        "y": 48
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "aufloesung"
+      },
+      {
+        "from": "aufloesung.success",
+        "to": "post"
+      },
+      {
+        "from": "post.success",
+        "to": "erreichbar"
+      },
+      {
+        "from": "erreichbar.success",
+        "to": "gibts_nicht"
+      },
+      {
+        "from": "gibts_nicht.success",
+        "to": "gefunden"
+      },
+      {
+        "from": "gefunden.else",
+        "to": "gemeldet"
+      },
+      {
+        "from": "gemeldet",
+        "to": "ende"
+      },
+      {
+        "from": "gefunden.then",
+        "to": "ende"
+      }
+    ]
+  }
+}

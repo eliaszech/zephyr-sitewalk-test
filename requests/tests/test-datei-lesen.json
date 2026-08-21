@@ -1,0 +1,177 @@
+{
+  "type": "runbook",
+  "name": "Test Datei lesen",
+  "description": "Das Gegenstück zum Export: Testdaten, eine Liste von Kennungen, ein Token vom letzten Lauf. Gelesen wird **workspace-relativ**, und der Pfad spricht dieselbe Vorlagensprache wie überall.\n\n**Zwei Ausgänge, zwei Fragen.** `value` ist gelesen — eine `.json` kommt als Objekt zurück, „zeilen“ als Liste —, `text` ist die Datei, wie sie dasteht. Wer prüft, ob eine Zeile vorkommt, will den Text; wer ein Feld braucht, den Wert. Daneben `size` und `modified`: „ist die Testdatei von heute?“ ist eine Frage, die man wirklich stellt.\n\n**Im Ablauf und keine Formel** — aus demselben Grund wie beim Export: Lesen ist Arbeit auf der Platte, und eine Formel wird gerechnet, sooft jemand hinsieht. Eine Datei bei jedem Zeichnen anzufassen wäre keine gute Idee.\n\n**Eine Datei, die es nicht gibt, ist ein Fehler und kein leerer Wert.** Der dritte Knoten greift mit Absicht daneben; sein „error“-Ausgang führt weiter, und der Fallback dahinter fängt den fehlenden Wert auf — dafür ist er da.\n\nDie Dateien liegen in `daten/` neben `requests/`: der Baum zeigt den ganzen Workspace, nicht nur die Requests.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "kind": "start",
+        "x": 60,
+        "y": 48
+      },
+      {
+        "id": "kunden",
+        "kind": "readfile",
+        "name": "Kunden als JSON",
+        "comment": "„auto“: eine .json wird gelesen, alles andere bleibt Text. Danach hat „value“ Felder, an die eine Leitung passt.",
+        "data": {
+          "path": "daten/kunden.json",
+          "format": "auto"
+        },
+        "x": 420,
+        "y": 48
+      },
+      {
+        "id": "wie_viele",
+        "kind": "count",
+        "name": "Wie viele Kunden",
+        "vars": {
+          "input": "$kunden.body.value.kunden"
+        },
+        "x": 768,
+        "y": 168
+      },
+      {
+        "id": "kennungen",
+        "kind": "readfile",
+        "name": "Kennungen zeilenweise",
+        "comment": "„zeilen“ gibt eine Liste — leere Zeilen fallen weg, auch die letzte hinter dem Zeilenumbruch am Dateiende.",
+        "data": {
+          "path": "daten/kennungen.txt",
+          "format": "zeilen"
+        },
+        "x": 420,
+        "y": 288
+      },
+      {
+        "id": "jede",
+        "kind": "foreach",
+        "name": "Für jede Kennung",
+        "comment": "Aus der Datei direkt in den Ablauf: dafür sind die beiden zusammen da.",
+        "vars": {
+          "list": "$kennungen.body.value"
+        },
+        "x": 768,
+        "y": 288
+      },
+      {
+        "id": "notiz",
+        "kind": "log",
+        "name": "Je Kennung eine Zeile",
+        "vars": {
+          "input": "$jede.body.each"
+        },
+        "data": {
+          "label": "Kennung"
+        },
+        "flow": true,
+        "x": 1116,
+        "y": 288
+      },
+      {
+        "id": "fehlt",
+        "kind": "readfile",
+        "name": "Gibt es nicht",
+        "comment": "Absichtlich daneben. Der Knoten meldet einen Fehler — der Ablauf geht über „error“ weiter, und der Fallback fängt den Wert auf.",
+        "data": {
+          "path": "daten/gibtsnicht.json"
+        },
+        "x": 420,
+        "y": 480
+      },
+      {
+        "id": "vorgabe",
+        "kind": "json",
+        "name": "Vorgabe",
+        "data": {
+          "value": "{\"stand\": \"unbekannt\"}"
+        },
+        "x": 420,
+        "y": 624
+      },
+      {
+        "id": "trotzdem",
+        "kind": "fallback",
+        "name": "Trotzdem ein Wert",
+        "comment": "„a“ hat einen Fehler — und das ist hier keine Störung, sondern die Frage. Also gilt „b“.",
+        "vars": {
+          "a": "$fehlt.body.value",
+          "b": "$vorgabe.body"
+        },
+        "x": 768,
+        "y": 552
+      },
+      {
+        "id": "gemeldet",
+        "kind": "log",
+        "name": "Was stattdessen gilt",
+        "vars": {
+          "input": "$trotzdem.body"
+        },
+        "data": {
+          "label": "Vorgabe"
+        },
+        "flow": true,
+        "x": 1116,
+        "y": 552
+      },
+      {
+        "id": "ende",
+        "kind": "end",
+        "name": "Ende",
+        "vars": {
+          "stand": "$kunden.body.value.stand",
+          "kunden": "$wie_viele.body",
+          "bytes": "$kunden.body.size",
+          "kennungen": "$kennungen.body.value",
+          "roh": "$kennungen.body.text",
+          "statt_der_datei": "$trotzdem.body"
+        },
+        "data": {
+          "label": "Zwei Dateien, eine Vorgabe"
+        },
+        "x": 1464,
+        "y": 48
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "kunden"
+      },
+      {
+        "from": "kunden.success",
+        "to": "kennungen"
+      },
+      {
+        "from": "kennungen.success",
+        "to": "jede"
+      },
+      {
+        "from": "jede.each",
+        "to": "notiz"
+      },
+      {
+        "from": "notiz",
+        "to": "jede"
+      },
+      {
+        "from": "jede.done",
+        "to": "fehlt"
+      },
+      {
+        "from": "fehlt.error",
+        "to": "gemeldet"
+      },
+      {
+        "from": "fehlt.success",
+        "to": "gemeldet"
+      },
+      {
+        "from": "gemeldet",
+        "to": "ende"
+      }
+    ]
+  }
+}

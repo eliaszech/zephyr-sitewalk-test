@@ -1,0 +1,167 @@
+{
+  "type": "runbook",
+  "name": "Test Runden und Betrag",
+  "description": "Die zwei Fragen, an denen ein Geld-Test hängt.\n\n**4.005 auf zwei Stellen** gibt hier **4.01** und nicht 4.00: gerundet wird die geschriebene Zahl und nicht ihre binäre Näherung — im Rechner liegt 4.005 ein Haar darunter, und wer damit rechnet, bekommt das, was niemand erwartet.\n\n**Kaufmännisch heisst: die Hälfte vom Null weg.** Aus −1.5 wird −2 und nicht −1. Daneben stehen „auf“ und „ab“ wörtlich: zur grösseren und zur kleineren Zahl hin — bei einer negativen geht „auf“ damit Richtung null.\n\nDer **Betrag** unten beantwortet „höchstens fünf Rappen daneben“: die Frage gilt in beide Richtungen, und ohne ihn stünde dort zweimal dieselbe Bedingung mit umgedrehtem Zeichen.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "kind": "start",
+        "x": 60,
+        "y": 48
+      },
+      {
+        "id": "betrag",
+        "kind": "string",
+        "name": "Aus der Antwort",
+        "comment": "Als Text, wie Beträge oft zurückkommen — der Knoten rechnet trotzdem.",
+        "data": {
+          "value": "4.005"
+        },
+        "x": 60,
+        "y": 264
+      },
+      {
+        "id": "kaufmaennisch",
+        "kind": "round",
+        "name": "Auf Rappen",
+        "comment": "Zwei Stellen, kaufmännisch: 4.01. Über die binäre Näherung gerechnet käme 4.00 heraus.",
+        "vars": {
+          "input": "$betrag.body"
+        },
+        "data": {
+          "digits": "2"
+        },
+        "x": 420,
+        "y": 192
+      },
+      {
+        "id": "aufgerundet",
+        "kind": "round",
+        "name": "Aufgerundet",
+        "vars": {
+          "input": "$betrag.body"
+        },
+        "data": {
+          "digits": "2",
+          "mode": "auf"
+        },
+        "x": 420,
+        "y": 312
+      },
+      {
+        "id": "abgerundet",
+        "kind": "round",
+        "name": "Abgerundet",
+        "vars": {
+          "input": "$betrag.body"
+        },
+        "data": {
+          "digits": "2",
+          "mode": "ab"
+        },
+        "x": 420,
+        "y": 432
+      },
+      {
+        "id": "gutschrift",
+        "kind": "number",
+        "name": "Eine Gutschrift",
+        "data": {
+          "value": "-1.5"
+        },
+        "x": 60,
+        "y": 552
+      },
+      {
+        "id": "ganze",
+        "kind": "round",
+        "name": "Auf ganze Franken",
+        "comment": "Vom Null weg: −2. Ein Runden, das die Hälfte immer nach oben nimmt, machte daraus −1.",
+        "vars": {
+          "input": "$gutschrift.body"
+        },
+        "x": 420,
+        "y": 552
+      },
+      {
+        "id": "erwartet",
+        "kind": "number",
+        "name": "Erwartet",
+        "data": {
+          "value": "4.00"
+        },
+        "x": 60,
+        "y": 696
+      },
+      {
+        "id": "differenz",
+        "kind": "transform",
+        "name": "Differenz",
+        "comment": "Eine Zeile für den Unterschied — mit Vorzeichen, wie er entsteht.",
+        "vars": {
+          "ist": "$kaufmaennisch.body",
+          "soll": "$erwartet.body"
+        },
+        "data": {
+          "expr": "ist - soll"
+        },
+        "x": 420,
+        "y": 696
+      },
+      {
+        "id": "abweichung",
+        "kind": "abs",
+        "name": "Wie weit daneben",
+        "comment": "Ohne Vorzeichen — „höchstens fünf Rappen daneben“ gilt in beide Richtungen.",
+        "vars": {
+          "input": "$differenz.body"
+        },
+        "x": 768,
+        "y": 696
+      },
+      {
+        "id": "notiz",
+        "kind": "log",
+        "name": "Log",
+        "vars": {
+          "gerundet": "$kaufmaennisch.body",
+          "abweichung": "$abweichung.body"
+        },
+        "data": {
+          "label": "Betrag"
+        },
+        "flow": true,
+        "x": 420,
+        "y": 48
+      },
+      {
+        "id": "ende",
+        "kind": "end",
+        "name": "Ende",
+        "vars": {
+          "kaufmaennisch": "$kaufmaennisch.body",
+          "aufgerundet": "$aufgerundet.body",
+          "abgerundet": "$abgerundet.body",
+          "gutschrift_ganz": "$ganze.body",
+          "abweichung": "$abweichung.body"
+        },
+        "data": {
+          "label": "Vier Rundungen, ein Betrag"
+        },
+        "x": 768,
+        "y": 48
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "notiz"
+      },
+      {
+        "from": "notiz",
+        "to": "ende"
+      }
+    ]
+  }
+}

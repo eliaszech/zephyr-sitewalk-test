@@ -1,0 +1,136 @@
+{
+  "type": "runbook",
+  "name": "Test Gruppieren",
+  "description": "Aus einer Liste ein Objekt: je Wert des Feldes die Elemente, die ihn tragen.\n\nFünf Bestellungen nach `status` gruppiert geben **drei Gruppen** — „offen“, „bezahlt“ und die **leere**: Nummer 5 hat gar keinen Status. Weggelassen wäre sie ein Datensatz, der spurlos verschwindet, und die Gruppen zusammen ergäben nicht mehr die Liste. Anders als beim Sortieren, wo „nichts“ ans Ende rückt: dort lässt es sich nicht *vergleichen*, hier sehr wohl *sammeln*.\n\nDer Ausgang `count` zählt die **Gruppen**, nicht die Elemente — wie viele es waren, steht an der Liste, die hineinging. Was in einer Gruppe steht, zählt daneben ein „Anzahl“, und ein „Summe“ rechnet ihren Umsatz.\n\nUnten ohne Feld: über einer Liste von Werten wird das eine **Strichliste** — welcher Tag wie oft vorkommt.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "kind": "start",
+        "x": 60,
+        "y": 48
+      },
+      {
+        "id": "bestellungen",
+        "kind": "json",
+        "name": "Fünf Bestellungen",
+        "comment": "Nummer 5 hat keinen Status — das ist der Fall, um den es geht.",
+        "data": {
+          "value": "[{\"nr\": 1, \"status\": \"offen\", \"betrag\": 250}, {\"nr\": 2, \"status\": \"bezahlt\", \"betrag\": 40}, {\"nr\": 3, \"status\": \"offen\", \"betrag\": 99}, {\"nr\": 4, \"status\": \"bezahlt\", \"betrag\": 12}, {\"nr\": 5, \"betrag\": 7}]"
+        },
+        "x": 60,
+        "y": 288
+      },
+      {
+        "id": "nach_status",
+        "kind": "group",
+        "name": "Nach Status",
+        "comment": "Drei Gruppen: offen, bezahlt und die leere für die ohne Status.",
+        "vars": {
+          "list": "$bestellungen.body"
+        },
+        "data": {
+          "path": "status"
+        },
+        "x": 420,
+        "y": 288
+      },
+      {
+        "id": "offene",
+        "kind": "count",
+        "name": "Wie viele offen",
+        "comment": "Die Anzahl je Gruppe ist danach eine Frage an eine Liste und keine Schleife.",
+        "vars": {
+          "input": "$nach_status.body.groups.offen"
+        },
+        "x": 768,
+        "y": 216
+      },
+      {
+        "id": "offener_umsatz",
+        "kind": "sum",
+        "name": "Offener Betrag",
+        "vars": {
+          "list": "$nach_status.body.groups.offen"
+        },
+        "data": {
+          "path": "betrag"
+        },
+        "x": 768,
+        "y": 336
+      },
+      {
+        "id": "tags",
+        "kind": "list",
+        "name": "Tags aus fünf Antworten",
+        "data": {
+          "items": "neu\neilig\nneu\nneu\neilig"
+        },
+        "x": 60,
+        "y": 600
+      },
+      {
+        "id": "strichliste",
+        "kind": "group",
+        "name": "Strichliste",
+        "comment": "Ohne Feld: gruppiert wird nach den Elementen selbst.",
+        "vars": {
+          "list": "$tags.body"
+        },
+        "x": 420,
+        "y": 600
+      },
+      {
+        "id": "wie_oft_neu",
+        "kind": "count",
+        "name": "Wie oft „neu“",
+        "vars": {
+          "input": "$strichliste.body.groups.neu"
+        },
+        "x": 768,
+        "y": 600
+      },
+      {
+        "id": "notiz",
+        "kind": "log",
+        "name": "Log",
+        "vars": {
+          "gruppen": "$nach_status.body.count",
+          "offen": "$offene.body"
+        },
+        "data": {
+          "label": "Gruppen"
+        },
+        "flow": true,
+        "x": 420,
+        "y": 48
+      },
+      {
+        "id": "ende",
+        "kind": "end",
+        "name": "Ende",
+        "vars": {
+          "gruppen": "$nach_status.body.count",
+          "offen": "$offene.body",
+          "offener_umsatz": "$offener_umsatz.body",
+          "wie_oft_neu": "$wie_oft_neu.body"
+        },
+        "data": {
+          "label": "Drei Gruppen aus fünf Bestellungen"
+        },
+        "x": 768,
+        "y": 48
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "notiz"
+      },
+      {
+        "from": "notiz",
+        "to": "ende"
+      }
+    ]
+  }
+}

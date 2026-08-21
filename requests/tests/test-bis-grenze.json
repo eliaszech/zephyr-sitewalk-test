@@ -25,10 +25,12 @@
       {
         "id": "pause",
         "kind": "wait",
-        "waitMs": 100,
         "comment": "Steht für den Schritt, der je Durchgang wiederholt wird. Die Kante zurück ist die Wiederholung.",
         "x": 420,
-        "y": 276
+        "y": 276,
+        "data": {
+          "ms": "100"
+        }
       },
       {
         "id": "ende",

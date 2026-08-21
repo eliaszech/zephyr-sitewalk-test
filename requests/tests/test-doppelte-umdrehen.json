@@ -1,0 +1,147 @@
+{
+  "type": "runbook",
+  "name": "Test Doppelte und Umdrehen",
+  "description": "Zwei Listenarbeiten, die man sonst in ein Skript schriebe. Das Sortieren steht nebenan in „Test Sortieren“.\n\nNach dem Lauf steht am Log „AB-3, AB-2, AB-1“: aus fünf Kennungen werden drei, und die stehen rückwärts da. Im Reiter „ergebnis“ liegt daneben, worauf es ankommt — bei den Bestellungen bleiben **vier** von fünf übrig, obwohl nur zwei denselben Kunden tragen: die beiden ohne Kunden bleiben beide stehen, denn „nichts“ ist kein Wert, an dem sich Gleichheit entscheidet.\n\nUnd der umgedrehte Text zeigt, dass über Zeichen gedreht wird und nicht über Bytes: das Gesicht bleibt eines.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "kind": "start",
+        "x": 60,
+        "y": 48
+      },
+      {
+        "id": "roh",
+        "kind": "list",
+        "name": "Fünf Kennungen",
+        "comment": "AB-1 und AB-2 stehen zweimal da.",
+        "data": {
+          "items": "AB-1\nAB-2\nAB-1\nAB-3\nAB-2"
+        },
+        "x": 60,
+        "y": 264
+      },
+      {
+        "id": "ohne",
+        "kind": "unique",
+        "name": "Doppelte weg",
+        "comment": "Ohne Feld: die Elemente selbst. Das erste Vorkommen bleibt — deshalb ist die Reihenfolge dieselbe wie vorher.",
+        "vars": {
+          "list": "$roh.body"
+        },
+        "x": 420,
+        "y": 264
+      },
+      {
+        "id": "rueckwaerts",
+        "kind": "reverse",
+        "name": "Umgedreht",
+        "comment": "Die Reihenfolge, die schon da ist — nicht eine neue. Sortieren „ab“ gäbe AB-3, AB-2, AB-1 nur zufällig auch.",
+        "vars": {
+          "input": "$ohne.body.items"
+        },
+        "x": 768,
+        "y": 264
+      },
+      {
+        "id": "zeile",
+        "kind": "join",
+        "name": "Als eine Zeile",
+        "vars": {
+          "list": "$rueckwaerts.body"
+        },
+        "data": {
+          "separator": ", "
+        },
+        "x": 1116,
+        "y": 264
+      },
+      {
+        "id": "bestellungen",
+        "kind": "json",
+        "name": "Fünf Bestellungen",
+        "comment": "Zwei gehören derselben Kundin, zwei tragen gar keine.",
+        "data": {
+          "value": "[{\"nr\": 1, \"kunde\": \"ada\"}, {\"nr\": 2, \"kunde\": \"grace\"}, {\"nr\": 3, \"kunde\": \"ada\"}, {\"nr\": 4}, {\"nr\": 5}]"
+        },
+        "x": 60,
+        "y": 456
+      },
+      {
+        "id": "kunden",
+        "kind": "unique",
+        "name": "Je Kundin eine",
+        "comment": "Nummer 3 fällt weg, 4 und 5 bleiben beide: was am Feld nichts hat, ist mit nichts gleich.",
+        "vars": {
+          "list": "$bestellungen.body"
+        },
+        "data": {
+          "path": "kunde"
+        },
+        "x": 420,
+        "y": 456
+      },
+      {
+        "id": "text",
+        "kind": "string",
+        "name": "Ein Text",
+        "data": {
+          "value": "Zephyr 🙂"
+        },
+        "x": 60,
+        "y": 624
+      },
+      {
+        "id": "gedreht",
+        "kind": "reverse",
+        "name": "Text umgedreht",
+        "comment": "Derselbe Knoten wie oben: dieselbe Frage an Liste und Text, so wie „Anzahl“ Elemente und Zeichen zählt.",
+        "vars": {
+          "input": "$text.body"
+        },
+        "x": 420,
+        "y": 624
+      },
+      {
+        "id": "notiz",
+        "kind": "log",
+        "name": "Log",
+        "vars": {
+          "input": "$zeile.body"
+        },
+        "data": {
+          "label": "Kennungen"
+        },
+        "flow": true,
+        "x": 420,
+        "y": 48
+      },
+      {
+        "id": "ende",
+        "kind": "end",
+        "name": "Ende",
+        "vars": {
+          "kennungen": "$zeile.body",
+          "von_fuenf_blieben": "$ohne.body.count",
+          "bestellungen": "$kunden.body.count",
+          "text": "$gedreht.body"
+        },
+        "data": {
+          "label": "Zweimal weniger, einmal andersherum"
+        },
+        "x": 768,
+        "y": 48
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "notiz"
+      },
+      {
+        "from": "notiz",
+        "to": "ende"
+      }
+    ]
+  }
+}
