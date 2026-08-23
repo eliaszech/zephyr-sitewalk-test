@@ -1,0 +1,96 @@
+{
+  "type": "runbook",
+  "name": "Test Retry Grenze",
+  "description": "Dasselbe, nur reichen die Anläufe nicht: der Versuch verlangt den fünften, erlaubt sind zwei.\n\nAufgeben ist ein **Fehler** und kein „fertig“ — es gibt keinen Ausgang dafür. Ein stiller Ausstieg sähe aus wie ein gelungener Anlauf, und der Schritt danach liefe weiter, als wäre der Auftrag erledigt.\n\nWer den Fehlschlag behandeln will, hängt eine Kante an den „error“ des Retry — dann läuft es dort weiter statt aufzuhören. Genau das tut „Aufräumen“ hier. Ohne sie endet der Lauf mit „Nach 2 Anläufen noch immer nicht gelungen.“",
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "kind": "start",
+        "x": 60,
+        "y": 180
+      },
+      {
+        "id": "versuch",
+        "kind": "assert",
+        "name": "Klappt nie",
+        "comment": "Verlangt den fünften Anlauf, den es nicht gibt. Steht für den Dienst, der auch beim dritten Mal nicht antwortet.",
+        "vars": {
+          "input": "$retry.body.attempts"
+        },
+        "data": {
+          "expr": "(inputs.input || 0) >= 5"
+        },
+        "x": 372,
+        "y": 180
+      },
+      {
+        "id": "retry",
+        "kind": "retry",
+        "name": "Zwei Anläufe",
+        "comment": "Fest 500 ms dazwischen. Der zweite Anlauf ist der letzte — beim zweiten Fehlschlag ist Schluss, und weil eine Kante an „error“ hängt, endet der Lauf nicht, sondern geht dort weiter.",
+        "data": {
+          "times": "2",
+          "backoff": "fix 500 ms"
+        },
+        "x": 372,
+        "y": 396
+      },
+      {
+        "id": "aufraeumen",
+        "kind": "log",
+        "name": "Aufräumen",
+        "comment": "Am „error“ des Retry: was zu tun ist, wenn es nicht geklappt hat — melden, aufräumen, anders weitermachen.",
+        "vars": {
+          "anlaeufe": "$retry.body.attempts"
+        },
+        "data": {
+          "label": "aufgegeben"
+        },
+        "ports": [
+          "anlaeufe"
+        ],
+        "flow": true,
+        "x": 744,
+        "y": 396
+      },
+      {
+        "id": "ende",
+        "kind": "end",
+        "vars": {
+          "anlaeufe": "$retry.body.attempts"
+        },
+        "data": {
+          "label": "aufgegeben"
+        },
+        "ports": [
+          "anlaeufe"
+        ],
+        "x": 1080,
+        "y": 396
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "versuch"
+      },
+      {
+        "from": "versuch.error",
+        "to": "retry"
+      },
+      {
+        "from": "retry.again",
+        "to": "versuch"
+      },
+      {
+        "from": "retry.error",
+        "to": "aufraeumen"
+      },
+      {
+        "from": "aufraeumen",
+        "to": "ende"
+      }
+    ]
+  }
+}

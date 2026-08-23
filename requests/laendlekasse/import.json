@@ -15,7 +15,6 @@
       {
         "id": "produkte",
         "request": "requests/laendlekasse/produkte.json",
-        "comment": "yarrack",
         "vars": {
           "base_url": "$env.body.base_url",
           "token": "$env.body.token"
@@ -129,6 +128,9 @@
           "mode": "ersetzen",
           "text": ""
         },
+        "ports": [
+          "timestamp"
+        ],
         "group": "gruppe",
         "x": 1332,
         "y": -36
@@ -142,7 +144,7 @@
         },
         "flow": true,
         "x": 1668,
-        "y": 0
+        "y": -48
       },
       {
         "id": "status",
@@ -164,8 +166,7 @@
           "label": ""
         },
         "ports": [
-          "product",
-          "test"
+          "product"
         ],
         "x": 2052,
         "y": 0

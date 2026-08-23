@@ -86,7 +86,7 @@
           "list": "$faelle.body"
         },
         "data": {
-          "path": "erwartet"
+          "field": "erwartet"
         },
         "x": 420,
         "y": 552

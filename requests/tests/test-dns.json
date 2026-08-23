@@ -27,7 +27,7 @@
         "name": "Welche Adresse?",
         "comment": "A: „addresses“ und „records“ tragen dasselbe — wer nach A fragt, will beides am selben Knoten finden.",
         "vars": {
-          "host": "$name.body"
+          "name": "$name.body"
         },
         "data": {
           "type": "A"
@@ -41,7 +41,7 @@
         "name": "Wer nimmt die Post?",
         "comment": "MX: hier bleibt „addresses“ leer, und die Einträge stehen als Text da — „10 mail.example.com“.",
         "vars": {
-          "host": "$name.body"
+          "name": "$name.body"
         },
         "data": {
           "type": "MX"
@@ -68,7 +68,7 @@
         "name": "Und nimmt sie ab?",
         "comment": "Erst der Name, dann der Handschlag: zusammen beantworten die beiden „liegt es am Netz?“.",
         "vars": {
-          "host": "$erste_adresse.body"
+          "target": "$erste_adresse.body"
         },
         "data": {
           "count": "1"
@@ -82,8 +82,8 @@
         "name": "Absichtlich ins Leere",
         "comment": "Diesen Namen gibt es nicht. Der Knoten läuft trotzdem grün durch — „den gibt es nicht“ ist die Auskunft, nach der jemand fragt.",
         "data": {
-          "host": "gibtsganzsicherht.invalid",
-          "type": "A"
+          "type": "A",
+          "name": "gibtsganzsicherht.invalid"
         },
         "x": 420,
         "y": 612

@@ -49,7 +49,7 @@
         "kind": "time",
         "name": "Der Augenblick",
         "data": {
-          "at": "2026-01-01T00:00:00Z"
+          "moment": "2026-01-01T00:00:00Z"
         },
         "comment": "Ein fester Augenblick — aber aus dem eigenen Feld und nicht vom Würfel: dafür ist das Feld „zeitpunkt“ da.",
         "x": 420,

@@ -1,5 +1,8 @@
 {
   "method": "GET",
   "name": "Produkte",
-  "url": "{{base_url}}/api/shop/products"
+  "url": "{{base_url}}/api/shop/products",
+  "body": {
+    "key": "homou"
+  }
 }

@@ -89,7 +89,7 @@
         "name": "Und wieder zerlegt",
         "comment": "Der Weg zurück: „tag“ kommt als Liste heraus, so wie es hineinging.",
         "vars": {
-          "input": "$adresse.body"
+          "url": "$adresse.body"
         },
         "x": 1116,
         "y": 456

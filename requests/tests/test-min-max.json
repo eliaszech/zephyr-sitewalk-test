@@ -82,7 +82,7 @@
           "list": "$waren.body"
         },
         "data": {
-          "path": "preis"
+          "field": "preis"
         },
         "x": 420,
         "y": 612
@@ -95,7 +95,7 @@
           "list": "$waren.body"
         },
         "data": {
-          "path": "preis"
+          "field": "preis"
         },
         "x": 420,
         "y": 744

@@ -54,7 +54,7 @@
           "list": "$nach_status.body.groups.offen"
         },
         "data": {
-          "path": "betrag"
+          "field": "betrag"
         },
         "x": 768,
         "y": 336

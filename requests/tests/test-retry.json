@@ -1,0 +1,102 @@
+{
+  "type": "runbook",
+  "name": "Test Retry",
+  "description": "So oft wieder, bis es klappt.\n\n**Der Retry steht hinter dem Versuch, nicht davor.** Der Ablauf geht zuerst in den Schritt, der schiefgehen kann; dessen „error“ führt auf den Retry, und dessen „again“ führt zurück. Was gelingt, geht über sein eigenes „success“ weiter und kommt am Retry nie vorbei — deshalb muss der ihn gar nicht erkennen.\n\nDavorgestellt zählte er einen Fehlschlag, den es noch nicht gab, und wartete vor dem ersten Anlauf. Das ist der Unterschied zur Bis-Schleife: die prüft, *bevor* etwas geschieht.\n\nGeprüft wird hier ohne Netz: der Versuch verlangt den dritten Anlauf und scheitert deshalb zweimal. Dazwischen wird gewartet (500 ms, 1 s). Was passiert, wenn die Anläufe nicht reichen, zeigt „Test Retry Grenze“ daneben.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "kind": "start",
+        "x": 60,
+        "y": 180
+      },
+      {
+        "id": "versuch",
+        "kind": "assert",
+        "name": "Klappt es schon?",
+        "comment": "Steht für den Schritt, der schiefgehen kann — sonst ein Request. Er verlangt den dritten Anlauf, scheitert also zweimal und gelingt beim dritten. Der Ablauf kommt hier zuerst an, nicht am Retry.",
+        "vars": {
+          "input": "$retry.body.attempts"
+        },
+        "data": {
+          "expr": "(inputs.input || 0) >= 2"
+        },
+        "x": 372,
+        "y": 180
+      },
+      {
+        "id": "retry",
+        "kind": "retry",
+        "name": "Noch einmal",
+        "comment": "Nimmt den Fehlschlag entgegen und schickt zurück. „attempts“ ist die Zahl der *gelaufenen* Anläufe — beim ersten Fehlschlag eins. Dazwischen wird gewartet, exponentiell: 500 ms, 1 s, 2 s.",
+        "data": {
+          "times": "5",
+          "backoff": "exponentiell"
+        },
+        "x": 372,
+        "y": 396
+      },
+      {
+        "id": "geschafft",
+        "kind": "log",
+        "name": "Geschafft",
+        "comment": "Hängt am „success“ des Versuchs: was gelingt, läuft am Retry vorbei.",
+        "vars": {
+          "anlaeufe": "$retry.body.attempts"
+        },
+        "data": {
+          "label": "gelungen"
+        },
+        "ports": [
+          "anlaeufe"
+        ],
+        "portTypes": {
+          "anlaeufe": "number"
+        },
+        "flow": true,
+        "x": 744,
+        "y": 180
+      },
+      {
+        "id": "ende",
+        "kind": "end",
+        "vars": {
+          "anlaeufe": "$retry.body.attempts"
+        },
+        "data": {
+          "label": "fertig"
+        },
+        "ports": [
+          "anlaeufe"
+        ],
+        "portTypes": {
+          "anlaeufe": "number"
+        },
+        "x": 1272,
+        "y": 180
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "versuch"
+      },
+      {
+        "from": "versuch.error",
+        "to": "retry"
+      },
+      {
+        "from": "retry.again",
+        "to": "versuch"
+      },
+      {
+        "from": "versuch.success",
+        "to": "geschafft"
+      },
+      {
+        "from": "geschafft",
+        "to": "ende"
+      }
+    ]
+  }
+}

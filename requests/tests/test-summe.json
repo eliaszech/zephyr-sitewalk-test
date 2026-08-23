@@ -29,7 +29,7 @@
           "list": "$positionen.body"
         },
         "data": {
-          "path": "betrag"
+          "field": "betrag"
         },
         "x": 420,
         "y": 216
@@ -43,7 +43,7 @@
           "list": "$positionen.body"
         },
         "data": {
-          "path": "betrag"
+          "field": "betrag"
         },
         "x": 420,
         "y": 348
@@ -115,7 +115,7 @@
           "list": "$positionen.body"
         },
         "data": {
-          "path": "artikel"
+          "field": "artikel"
         },
         "x": 420,
         "y": 852

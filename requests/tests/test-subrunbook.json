@@ -1,6 +1,6 @@
 {
   "type": "runbook",
-  "name": "Test Subrunbook",
+  "name": "TestUmgebung",
   "graph": {
     "nodes": [
       {
@@ -10,30 +10,49 @@
         "y": 60
       },
       {
-        "id": "import",
-        "kind": "subrunbook",
-        "request": "requests/laendlekasse/import.json",
-        "x": 408,
-        "y": 60
+        "id": "time",
+        "kind": "time",
+        "data": {
+          "at": "",
+          "shift": "",
+          "moment": "",
+          "offset": ""
+        },
+        "x": 444,
+        "y": 576
       },
       {
-        "id": "log",
-        "kind": "log",
+        "id": "average",
+        "kind": "average",
         "vars": {
-          "input": "$import.body.product"
+          "list": "$json.body"
         },
         "data": {
-          "label": ""
+          "list": "",
+          "field": "key"
         },
-        "x": 732,
-        "y": 132
+        "x": 1128,
+        "y": 576
+      },
+      {
+        "id": "list",
+        "kind": "list",
+        "data": {
+          "items": ""
+        },
+        "x": 504,
+        "y": 252
+      },
+      {
+        "id": "json",
+        "kind": "json",
+        "data": {
+          "value": "[\n  {\n    \"key\": 1\n  },\n  {\n    \"key\": 2\n  },\n  {\n    \"key\": 10\n  }\n]"
+        },
+        "x": 780,
+        "y": 420
       }
     ],
-    "edges": [
-      {
-        "from": "start",
-        "to": "import"
-      }
-    ]
+    "edges": []
   }
 }

@@ -96,7 +96,7 @@
           "list": "$schlank.body"
         },
         "data": {
-          "path": "betrag"
+          "field": "betrag"
         },
         "x": 768,
         "y": 528

@@ -26,7 +26,7 @@
         "name": "CSRF-Token",
         "comment": "Benannte Klammer: der Wert steht unter „groups.token“ und nicht unter einer Nummer, die man mitzählen müsste.",
         "vars": {
-          "input": "$seite.body"
+          "text": "$seite.body"
         },
         "data": {
           "pattern": "name=\"csrf\" value=\"(?<token>[^\"]+)\""
@@ -63,7 +63,7 @@
         "name": "Die Kennung",
         "comment": "Ohne „g“: gefragt ist der eine Wert. „all“ steht trotzdem da, mit genau einem Eintrag.",
         "vars": {
-          "input": "$weiterleitung.body"
+          "text": "$weiterleitung.body"
         },
         "data": {
           "pattern": "/([0-9]+)(?:\\?|$)"
@@ -87,7 +87,7 @@
         "name": "Alle Feldnamen",
         "comment": "Mit „g“: „all“ sammelt jeden Treffer, „match“ bleibt der erste.",
         "vars": {
-          "input": "$meldung.body"
+          "text": "$meldung.body"
         },
         "data": {
           "pattern": "Feld '([a-z]+)'",
@@ -112,7 +112,7 @@
         "name": "Trifft nichts",
         "comment": "Absichtlich daneben: kein Treffer ist ein Fehler und kein stilles Nichts. Er hängt an keinem Ende — der Lauf geht ihn nichts an.",
         "vars": {
-          "input": "$meldung.body"
+          "text": "$meldung.body"
         },
         "data": {
           "pattern": "Warnung: (.+)"

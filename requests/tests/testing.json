@@ -28,8 +28,8 @@
         "id": "time",
         "kind": "time",
         "data": {
-          "at": "",
-          "shift": ""
+          "moment": "",
+          "offset": ""
         },
         "group": "gruppe",
         "x": 696,

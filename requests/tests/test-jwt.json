@@ -23,7 +23,7 @@
         "name": "Eine Stunde später",
         "comment": "Der Ablauf kommt aus dem Zeit-Knoten und nicht aus dem Token-Knoten: der erfindet nichts.",
         "data": {
-          "shift": "+1h"
+          "offset": "+1h"
         },
         "x": 60,
         "y": 360

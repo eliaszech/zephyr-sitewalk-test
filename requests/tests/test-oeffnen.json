@@ -1,0 +1,137 @@
+{
+  "type": "runbook",
+  "name": "Test Öffnen",
+  "description": "Zeigt das Ergebnis dort, wo man es ansieht: den geschriebenen Bericht im Editor, die angelegte Ressource im Browser. Am Ende eines Laufs erspart das den Weg über den Dateimanager.\n\n**Achtung, dieser Lauf tut etwas Sichtbares.** Er schreibt `exports/oeffnen-test.txt`, macht die Datei mit dem Programm auf, dem die Endung gehört, und öffnet danach eine Seite im Browser. Das ist keine Nebenwirkung, sondern die Sache selbst.\n\n**Eingang, Feld und Ausgang heissen gleich: „target“.** Damit gilt hier dieselbe Reihenfolge wie überall — verdrahtet schlägt eingetippt. Der zweite Knoten lässt das Feld leer und bekommt den Pfad vom Export daneben; der dritte hat keinen Eingang und setzt in seinem Feld einen Platzhalter ein.\n\n**Unterschieden wird am Schema, nicht an einem Punkt im Namen.** „http“, „https“, „mailto“ und „tel“ gehen an den Browser beziehungsweise ans Mailprogramm; alles andere ist ein Pfad im Workspace — `exports/2026.01.json` hat drei Punkte und ist trotzdem keine Adresse. Mehr als diese vier Schemata lässt die Erlaubnis des Programms nicht durch.\n\n**Eine Datei muss im Workspace liegen und es geben.** Beides prüft das Backend, bevor es etwas öffnet: derselbe Riegel wie beim Lesen und Schreiben, und bei einem Aufruf, der ein fremdes Programm startet, zählt er mehr als dort.\n\n**Heraus kommt „target“, und zwar aufgelöst:** bei einer Datei der ganze Pfad samt Workspace-Wurzel, nicht die Vorlage, die im Feld stand. So sieht man im Verlauf, was wirklich aufging.\n\n**Was schiefgeht, ist der Fehler dieses Schrittes** und kein Abriss des Laufs — der letzte Knoten greift mit Absicht daneben. Sein „error“ führt weiter, wie bei Export und Datei lesen.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "kind": "start",
+        "x": 60,
+        "y": 60
+      },
+      {
+        "id": "zeit",
+        "kind": "time",
+        "name": "Augenblick des Laufs",
+        "comment": "Eine Formel: sie wird gerechnet, wenn jemand ihren Wert braucht. Hier braucht ihn der Bericht — und die Adresse weiter hinten.",
+        "x": 60,
+        "y": 336
+      },
+      {
+        "id": "bericht",
+        "kind": "export",
+        "name": "Bericht schreiben",
+        "comment": "Erst muss es etwas zu öffnen geben. Der Inhalt ist eine Vorlage, „{{zeit}}“ ist der Eingang darunter.",
+        "vars": {
+          "zeit": "$zeit.body.iso"
+        },
+        "data": {
+          "path": "exports/oeffnen-test.txt",
+          "text": "Bericht aus dem Test-Runbook.\nGeschrieben am {{zeit}}.\n",
+          "format": "text",
+          "mode": "ersetzen"
+        },
+        "x": 396,
+        "y": 60
+      },
+      {
+        "id": "oeffnen",
+        "kind": "open",
+        "name": "Datei aufmachen",
+        "comment": "Das Feld bleibt leer, der Eingang trägt den Pfad, den der Export zurückgegeben hat. Kein Schema davor: also eine Datei im Workspace und kein Aufruf des Browsers.",
+        "vars": {
+          "target": "$bericht.body.path"
+        },
+        "x": 744,
+        "y": 60
+      },
+      {
+        "id": "adresse",
+        "kind": "open",
+        "name": "Seite aufmachen",
+        "comment": "Hier steht das Ziel im Feld, und es spricht Vorlagensprache wie jeder Pfad im Programm: „{{vom}}“ ist ein selbst angelegter Eingang, gespeist aus dem Zeit-Knoten. Das Schema „https“ entscheidet, dass es an den Browser geht.",
+        "vars": {
+          "vom": "$zeit.body.unix"
+        },
+        "data": {
+          "target": "https://example.org/?vom={{vom}}"
+        },
+        "x": 1092,
+        "y": 60
+      },
+      {
+        "id": "daneben",
+        "kind": "open",
+        "name": "Gibt es nicht",
+        "comment": "Absichtlich daneben: die Datei gibt es nicht. Das Backend sagt ab, bevor etwas aufgeht — der Knoten meldet einen Fehler, statt den Lauf mitzunehmen. Beide Ausgänge führen deshalb auf dieselbe Meldung.",
+        "data": {
+          "target": "daten/gibtsnicht.txt"
+        },
+        "x": 1440,
+        "y": 60
+      },
+      {
+        "id": "gemeldet",
+        "kind": "log",
+        "name": "Was aufging",
+        "vars": {
+          "datei": "$oeffnen.body.target",
+          "seite": "$adresse.body.target"
+        },
+        "data": {
+          "label": "geöffnet"
+        },
+        "flow": true,
+        "x": 1440,
+        "y": 300
+      },
+      {
+        "id": "ende",
+        "kind": "end",
+        "name": "Ende",
+        "comment": "„target“ ist die aufgelöste Angabe: bei der Datei der ganze Pfad, bei der Adresse die eingesetzte Vorlage.",
+        "vars": {
+          "bericht": "$bericht.body.path",
+          "datei": "$oeffnen.body.target",
+          "seite": "$adresse.body.target"
+        },
+        "data": {
+          "label": "aufgemacht"
+        },
+        "x": 1788,
+        "y": 300
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "bericht"
+      },
+      {
+        "from": "bericht.success",
+        "to": "oeffnen"
+      },
+      {
+        "from": "oeffnen.success",
+        "to": "adresse"
+      },
+      {
+        "from": "adresse.success",
+        "to": "daneben"
+      },
+      {
+        "from": "daneben.success",
+        "to": "gemeldet"
+      },
+      {
+        "from": "daneben.error",
+        "to": "gemeldet"
+      },
+      {
+        "from": "gemeldet",
+        "to": "ende"
+      }
+    ]
+  }
+}
