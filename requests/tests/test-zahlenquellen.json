@@ -1,0 +1,161 @@
+{
+  "type": "runbook",
+  "name": "Test Punkt, Vektor und Dezimal",
+  "description": "Drei Quellen für Zahlen, die für sich allein nichts sagen.\n\n**Punkt und Vektor** sind zwei beziehungsweise drei Zahlen, die zusammengehören. Zwei Zahl-Knoten nebeneinander wären dasselbe in Einzelteilen — und man sähe der Fläche nicht mehr an, dass sie eine Stelle meinen. Beide geben **drei Wege** heraus: das Paar als Objekt, wie es in einen Rumpf geht, und jede Achse für sich, für eine Bedingung oder eine Rechnung daneben.\n\n**Verdrahtet schlägt eingetippt, Achse für Achse.** Der Vektor unten holt sein „z“ aus einer Antwort und lässt „x“ und „y“ stehen, wie sie im Knoten stehen.\n\n**Eine fehlende Achse ist kein Punkt.** Der halbe Punkt rechts wartet, statt eine Null zu erfinden: „nichts“ ist keine Koordinate, und eine stille Null wäre eine, die jemand gemeint hat.\n\n**Dezimal** beantwortet die Frage, die JSON nicht kennt: 1 und 1.0 sind dort dieselbe Zahl, für eine Schnittstelle, die auf zwei Stellen besteht, aber nicht. Der Knoten gibt beides — den Wert zum Rechnen und den Text zum Verschicken. Ohne Stellenzahl bleibt die Schreibweise, wie sie im Feld steht: wer „4.50“ hintippt, meint die Null am Ende.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "kind": "start",
+        "x": 60,
+        "y": 48
+      },
+      {
+        "id": "punkt",
+        "kind": "coord",
+        "name": "Eine Stelle",
+        "comment": "Drei Ausgänge, ein Wert: das Paar und die beiden Zahlen.",
+        "data": {
+          "x": "3",
+          "y": "-4"
+        },
+        "x": 60,
+        "y": 216
+      },
+      {
+        "id": "abstand",
+        "kind": "calc",
+        "name": "Nur die Höhe",
+        "comment": "Die Achse für sich — dafür stehen „x“ und „y“ einzeln da.",
+        "vars": {
+          "a": "$punkt.body.y"
+        },
+        "data": {
+          "op": "×",
+          "b": "-1"
+        },
+        "x": 468,
+        "y": 216
+      },
+      {
+        "id": "messung",
+        "kind": "json",
+        "name": "Eine Messung",
+        "data": {
+          "value": "{\n  \"z\": 9.81\n}"
+        },
+        "x": 60,
+        "y": 372
+      },
+      {
+        "id": "vektor",
+        "kind": "vector",
+        "name": "Drei Achsen",
+        "comment": "„z“ kommt von der Leitung, „x“ und „y“ aus dem Knoten — verdrahtet schlägt eingetippt, Achse für Achse.",
+        "vars": {
+          "z": "$messung.body.z"
+        },
+        "data": {
+          "x": "1",
+          "y": "2",
+          "z": "0"
+        },
+        "x": 468,
+        "y": 372
+      },
+      {
+        "id": "halb",
+        "kind": "coord",
+        "name": "Ohne y",
+        "comment": "Wartet, statt eine Null zu erfinden: „nichts“ ist keine Koordinate.",
+        "data": {
+          "x": "3"
+        },
+        "x": 468,
+        "y": 528
+      },
+      {
+        "id": "betrag",
+        "kind": "decimal",
+        "name": "Ein Betrag",
+        "comment": "4.5 als Zahl, „4.50“ als Text — JSON kennt den Unterschied nicht, eine Schnittstelle schon.",
+        "data": {
+          "value": "4.5",
+          "digits": "2"
+        },
+        "x": 60,
+        "y": 660
+      },
+      {
+        "id": "wie_getippt",
+        "kind": "decimal",
+        "name": "Wie hingeschrieben",
+        "comment": "Ohne Stellenzahl bleibt die Schreibweise stehen: die Null am Ende ist gemeint.",
+        "data": {
+          "value": "4.50"
+        },
+        "x": 468,
+        "y": 660
+      },
+      {
+        "id": "rumpf",
+        "kind": "template",
+        "name": "Was hinausgeht",
+        "comment": "Der Text und nicht der Wert: hier zählt die Schreibweise.",
+        "vars": {
+          "preis": "$betrag.body.text",
+          "ort": "$punkt.body.x"
+        },
+        "data": {
+          "text": "{ \"preis\": \"{{preis}}\", \"spalte\": {{ort}} }"
+        },
+        "x": 876,
+        "y": 660
+      },
+      {
+        "id": "notiz",
+        "kind": "log",
+        "name": "Log",
+        "vars": {
+          "punkt": "$punkt.body",
+          "betrag": "$betrag.body.text"
+        },
+        "data": {
+          "label": "Zahlen"
+        },
+        "flow": true,
+        "x": 420,
+        "y": 48
+      },
+      {
+        "id": "ende",
+        "kind": "end",
+        "name": "Ende",
+        "vars": {
+          "punkt": "$punkt.body",
+          "hoehe": "$abstand.body",
+          "vektor": "$vektor.body",
+          "betrag_wert": "$betrag.body.value",
+          "betrag_text": "$betrag.body.text",
+          "wie_getippt": "$wie_getippt.body.text",
+          "rumpf": "$rumpf.body"
+        },
+        "data": {
+          "label": "Sieben Werte aus drei Quellen"
+        },
+        "x": 876,
+        "y": 48
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "notiz"
+      },
+      {
+        "from": "notiz",
+        "to": "ende"
+      }
+    ]
+  }
+}

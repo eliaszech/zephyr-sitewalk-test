@@ -1,0 +1,164 @@
+{
+  "type": "runbook",
+  "name": "Test Testdatei und Systemvariablen",
+  "description": "Zwei Quellen, die nicht aus dem Workspace kommen: die eine baut sich der Lauf selbst, die andere bringt der *Rechner* mit.\n\n**Testdatei** liefert einen Rumpf von genau der verlangten Grösse. Die eine Frage, die ein Upload stellt, ist „wo ist die Grenze“ — und um sie zu beantworten, brauchte man bisher eine Datei auf der Platte, die niemand ins Repository legen will. `2M` sind zwei Megabyte, tausendvierundzwanzig-basiert: die Grenze, die ein Dienst als „2 MB“ meldet, sind 2 097 152 Bytes, und eine Datei mit zwei Millionen Bytes ginge fälschlich durch.\n\nDrei Formen, drei Fragen. **Zufällig** ist der Normalfall — das Byte hat keine Bedeutung, nur eine Anzahl. **Nullen** ist die Datei, an der man sieht, ob unterwegs komprimiert wird: sie schrumpft auf nichts, und wenn die Gegenstelle sie trotzdem als zwei Megabyte zählt, zählt sie ungepackt. **Text** ist die, die man in einer Ansicht anschaut, ohne dass sie wie ein Absturz aussieht.\n\nBei zehn Megabyte ist Schluss, und das ist eine Absage und kein Kürzen: die Datei entsteht im Speicher und bleibt im Journal des Laufs stehen. Wer eine grössere braucht, hat sie auf der Platte — dafür gibt es „Datei lesen“.\n\n**Systemvariablen** sind die Umgebung *dieses Rechners* und nicht die des Workspace. Auf einem Bauserver stehen dort die Kennungen des Auftrags, und die will man weder abtippen noch ins Repository legen — genau dafür sind sie da.\n\n**Genannt wird am Knoten, und nur das Genannte kommt heraus.** Zwei Gründe, und beide zählen: an der Karte steht damit, was die Maschine mitbringen muss, und ein Token, den niemand gefragt hat, landet auch nicht im Ergebnis, das man ansieht und aufschreibt. Eine ganze Umgebung im Journal wäre jeder Schlüssel, den dieser Rechner kennt.\n\n**Was es nicht gibt, ist `null` und kein Fehler.** Ob eine Variable dasein *muss*, weiss das Runbook und nicht dieser Knoten — die Bedingung daneben sagt es deutlicher als ein Abbruch mitten im Lauf. Hier steht deshalb ein Name, den es fast sicher nicht gibt, und der Lauf geht trotzdem weiter.\n\nGelesen wird einmal beim Start des Programms: zur Laufzeit ändert sich eine Umgebung nicht, und eine Formel kann nicht auf eine Antwort warten. Wer eine Variable setzt, während Zephyr läuft, sieht sie nach einem Neustart.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "kind": "start",
+        "x": 60,
+        "y": 48
+      },
+      {
+        "id": "zwei_mb",
+        "kind": "bytes",
+        "name": "Zwei Megabyte",
+        "comment": "Tausendvierundzwanzig-basiert: 2 097 152 Bytes, so wie die Gegenstelle rechnet.",
+        "data": {
+          "size": "2M"
+        },
+        "x": 60,
+        "y": 216
+      },
+      {
+        "id": "gemessen",
+        "kind": "filesize",
+        "name": "Wie gross wirklich",
+        "comment": "Der Gegenprobe wegen: was am Knoten steht, soll auch ankommen.",
+        "vars": {
+          "bytes": "$zwei_mb.body.size"
+        },
+        "x": 420,
+        "y": 216
+      },
+      {
+        "id": "nullen",
+        "kind": "bytes",
+        "name": "Lauter Nullbytes",
+        "comment": "Die Datei, an der man sieht, ob unterwegs komprimiert wird — sie schrumpft auf nichts.",
+        "data": {
+          "size": "64k",
+          "form": "nullen"
+        },
+        "x": 60,
+        "y": 372
+      },
+      {
+        "id": "lesbar",
+        "kind": "bytes",
+        "name": "Lesbarer Rumpf",
+        "comment": "Für die Ansicht, in der man ihn anschaut: Text und keine Zeichensuppe.",
+        "data": {
+          "size": "300",
+          "form": "text"
+        },
+        "x": 60,
+        "y": 528
+      },
+      {
+        "id": "zu_gross",
+        "kind": "bytes",
+        "name": "Über der Grenze",
+        "comment": "Stillgelegt: angeschaltet meldet er ab zehn Megabyte, statt zu kürzen. Die Datei entstünde im Speicher und bliebe im Journal stehen.",
+        "data": {
+          "size": "20M"
+        },
+        "disabled": true,
+        "x": 60,
+        "y": 660
+      },
+      {
+        "id": "umgebung",
+        "kind": "osenv",
+        "name": "Was der Rechner mitbringt",
+        "comment": "Nur die genannten: an der Karte steht damit, was die Maschine haben muss — und ein Token, den niemand gefragt hat, landet nicht im Journal.",
+        "data": {
+          "names": "PATH\nUSERNAME\nCI_JOB_TOKEN"
+        },
+        "x": 60,
+        "y": 840
+      },
+      {
+        "id": "hat_token",
+        "kind": "condition",
+        "name": "Läuft das auf dem Bauserver?",
+        "comment": "„null“ ist kein Fehler, sondern die Auskunft: hier fragt das Runbook, ob es die Variable braucht.",
+        "vars": {
+          "input": "$umgebung.body.CI_JOB_TOKEN"
+        },
+        "data": {
+          "expr": "input != null"
+        },
+        "x": 768,
+        "y": 156
+      },
+      {
+        "id": "wer",
+        "kind": "template",
+        "name": "Wer und wo",
+        "vars": {
+          "nutzer": "$umgebung.body.USERNAME",
+          "token": "$umgebung.body.CI_JOB_TOKEN"
+        },
+        "data": {
+          "text": "{{nutzer}} — CI_JOB_TOKEN: {{token}}"
+        },
+        "x": 540,
+        "y": 912
+      },
+      {
+        "id": "notiz",
+        "kind": "log",
+        "name": "Log",
+        "vars": {
+          "input": "$wer.body"
+        },
+        "data": {
+          "label": "Umgebung"
+        },
+        "flow": true,
+        "x": 420,
+        "y": 48
+      },
+      {
+        "id": "ende",
+        "kind": "end",
+        "name": "Ende",
+        "vars": {
+          "zwei_mb": "$zwei_mb.body.size",
+          "lesbar": "$gemessen.body",
+          "nullen": "$nullen.body.size",
+          "rumpf": "$lesbar.body.data",
+          "pfad": "$umgebung.body.PATH",
+          "nutzer": "$umgebung.body.USERNAME",
+          "bauserver": "$hat_token.body.ok",
+          "satz": "$wer.body"
+        },
+        "data": {
+          "label": "Was von aussen kommt"
+        },
+        "x": 1120,
+        "y": 12
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "notiz"
+      },
+      {
+        "from": "notiz",
+        "to": "hat_token"
+      },
+      {
+        "from": "hat_token.then",
+        "to": "ende"
+      },
+      {
+        "from": "hat_token.else",
+        "to": "ende"
+      }
+    ]
+  }
+}

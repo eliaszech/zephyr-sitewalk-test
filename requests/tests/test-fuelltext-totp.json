@@ -1,0 +1,128 @@
+{
+  "type": "runbook",
+  "name": "Test Fülltext und TOTP",
+  "description": "Zwei Quellen, die man vor einem Lauf braucht und sonst von Hand besorgt.\n\n**Fülltext** gibt Text von ungefähr der verlangten Länge: `200` sind Zeichen, `40w` Wörter, `3p` Absätze. Nicht „aaa“ und nicht dasselbe Zeichen zweihundertmal — eine Ansicht sieht mit echten Wörtern anders aus: Umbrüche fallen woanders, eine Spalte wird breiter, und ein Feld, das bei 200 Zeichen abschneidet, schneidet mitten in ein Wort statt mitten in nichts. Gekürzt wird deshalb auf ein Wortende; „ungefähr“ steht mit Absicht am Knoten.\n\nEr hängt **am Würfel des Laufs**: derselbe Lauf gibt denselben Text, der nächste einen anderen. Wer denselben immer wieder will, schreibt in „seed“ ein Wort hin.\n\n**TOTP** rechnet den sechsstelligen Code aus einer Authenticator-App. Ohne ihn endet jeder Lauf an einem Konto mit zweitem Faktor beim Menschen — und genau die Konten will man testen. Der Schlüssel steht als Base32 da, so wie ihn die App zeigt; Leerzeichen und Grossschreibung sind gleich.\n\n**„expires“ ist die halbe Auskunft:** wie viele Sekunden dieser Code noch gilt. Ein Code mit zwei Sekunden Restlaufzeit ist einer, der unterwegs abläuft — die Bedingung daneben schickt den Lauf dann in den anderen Zweig, statt ihn an einer Anmeldung scheitern zu lassen, die niemand mehr erklären kann.\n\nGerechnet wird gegen den Augenblick des *Laufs*, wie an jedem Zeit-Knoten: alle sehen denselben, und der Code springt nicht zwischen Zeichnen und Absenden.\n\nDer Schlüssel hier ist der aus der Norm (RFC 6238, Anhang B) — mit ihm gibt der Knoten zu jeder Sekunde denselben Code wie jede andere Implementierung.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "kind": "start",
+        "x": 60,
+        "y": 48
+      },
+      {
+        "id": "kurz",
+        "kind": "lorem",
+        "name": "Zweihundert Zeichen",
+        "comment": "Für ein Feld, dessen Grenze man sucht. Gekürzt wird auf ein Wortende — „ungefähr“ steht deshalb am Knoten.",
+        "data": {
+          "length": "200"
+        },
+        "x": 60,
+        "y": 216
+      },
+      {
+        "id": "absaetze",
+        "kind": "lorem",
+        "name": "Drei Absätze",
+        "comment": "Für eine Ansicht, die mit echten Wörtern anders aussieht als mit „aaa“.",
+        "data": {
+          "seed": "abnahme-2026",
+          "length": "3p"
+        },
+        "x": 60,
+        "y": 372
+      },
+      {
+        "id": "laenge",
+        "kind": "count",
+        "name": "Wie lang wirklich",
+        "vars": {
+          "input": "$kurz.body"
+        },
+        "x": 468,
+        "y": 216
+      },
+      {
+        "id": "code",
+        "kind": "totp",
+        "name": "Zweiter Faktor",
+        "comment": "Der Schlüssel aus RFC 6238 — mit ihm gibt jede Implementierung denselben Code.",
+        "data": {
+          "secret": "GEZDGNBVGY3TQOJQ GEZDGNBVGY3TQOJQ",
+          "digits": "6",
+          "period": "30"
+        },
+        "x": 60,
+        "y": 552
+      },
+      {
+        "id": "reicht",
+        "kind": "condition",
+        "name": "Reicht die Zeit?",
+        "comment": "Ein Code mit zwei Sekunden Restlaufzeit läuft unterwegs ab — dann lieber neu rechnen als sich anmelden.",
+        "vars": {
+          "input": "$code.body.expires"
+        },
+        "data": {
+          "expr": "input > 5"
+        },
+        "x": 468,
+        "y": 48
+      },
+      {
+        "id": "notiz",
+        "kind": "log",
+        "name": "Log",
+        "vars": {
+          "code": "$code.body.code",
+          "gilt_noch": "$code.body.expires"
+        },
+        "data": {
+          "label": "Zweiter Faktor"
+        },
+        "flow": true,
+        "x": 420,
+        "y": 48
+      },
+      {
+        "id": "ende",
+        "kind": "end",
+        "name": "Ende",
+        "vars": {
+          "fuelltext": "$kurz.body",
+          "zeichen": "$laenge.body",
+          "absaetze": "$absaetze.body",
+          "code": "$code.body.code",
+          "gilt_noch": "$code.body.expires",
+          "reicht": "$reicht.body.ok"
+        },
+        "data": {
+          "label": "Text und Code"
+        },
+        "x": 876,
+        "y": 48
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "notiz"
+      },
+      {
+        "from": "notiz",
+        "to": "reicht"
+      },
+      {
+        "from": "reicht",
+        "fromPort": "then",
+        "to": "ende"
+      },
+      {
+        "from": "reicht",
+        "fromPort": "else",
+        "to": "ende"
+      }
+    ]
+  }
+}

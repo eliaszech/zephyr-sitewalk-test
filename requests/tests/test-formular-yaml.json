@@ -1,0 +1,158 @@
+{
+  "type": "runbook",
+  "name": "Test Formular, YAML und Objekt",
+  "description": "Zwei Quellen für Rümpfe, die kein JSON sind.\n\n**Formular** schreibt man als Liste — ein Feld je Zeile, `name = wert` — und bekommt beides: das **Objekt** für eine Rechnung und den fertigen **`name=wert&…`-Text** für den Rumpf eines urlencodierten Requests. Ohne ihn baut man dafür einen JSON-Knoten und hängt „URL-kodieren“ dahinter: zwei Karten für etwas, das man hinschreibt.\n\n**Zweimal derselbe Name wird eine Liste.** In einem Formular ist das kein Versehen, sondern eine Mehrfachauswahl — und im Text steht der Name dann zweimal, genau so, wie er hinausgeht.\n\n**YAML** ist eine Quelle wie XML und HTML daneben: sie *liefert*, sie liest nicht. Heraus geht das Dokument als Text, wie es dasteht — für einen Rumpf, den ein Dienst als `application/yaml` erwartet. Wer daraus einen Wert holen will, hängt **Read YAML** dahinter — der macht daraus ein Objekt, und danach gilt jeder Pfad, den man schon kennt. Er geht auch die andere Richtung: unten wird das Formular wieder als YAML geschrieben.\n\nUnten steht beides nebeneinander, weil es dieselbe Frage ist: was schickt man, wenn es kein JSON ist.\n\nUnd ganz unten der dritte Fall: **Objekt** schreibt eines Zeile für Zeile hin — links der Name, rechts der Wert. Der JSON-Knoten kann das auch, nur mit Klammern und Kommas: für vier Felder ist das mehr Zeichensetzung als Inhalt, und eine fehlende Klammer meldet sich erst beim Lauf. Der Wert wird gelesen wie in einer Liste — `4.5` ist eine Zahl, `\"8001\"` bleibt Text, und ein JSON-Objekt darin ist eines.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "kind": "start",
+        "x": 60,
+        "y": 48
+      },
+      {
+        "id": "anmeldung",
+        "kind": "form",
+        "name": "Anmeldung",
+        "comment": "„rolle“ steht zweimal da — eine Mehrfachauswahl, und im Text steht sie auch zweimal.",
+        "data": {
+          "fields": "grant_type = password\nusername = meier\npassword = geheim\nrolle = admin\nrolle = gast"
+        },
+        "x": 60,
+        "y": 216
+      },
+      {
+        "id": "wer",
+        "kind": "extract",
+        "name": "Nur der Benutzer",
+        "comment": "Das Objekt für eine Rechnung — der Text daneben ist für den Rumpf.",
+        "vars": {
+          "input": "$anmeldung.body.value"
+        },
+        "data": {
+          "path": "username"
+        },
+        "x": 468,
+        "y": 216
+      },
+      {
+        "id": "konfig",
+        "kind": "yamldoc",
+        "name": "Eine Konfiguration",
+        "comment": "Wie sie dasteht — der Knoten liefert, er liest nicht.",
+        "data": {
+          "value": "apiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: zephyr\ndata:\n  base_url: https://api.test\n  timeout: 30s"
+        },
+        "x": 60,
+        "y": 432
+      },
+      {
+        "id": "gelesen",
+        "kind": "yaml",
+        "name": "Gelesen",
+        "comment": "Aus Text ein Objekt — danach gilt jeder Pfad, den man schon kennt.",
+        "vars": {
+          "input": "$konfig.body"
+        },
+        "data": {
+          "mode": "lesen"
+        },
+        "x": 468,
+        "y": 432
+      },
+      {
+        "id": "adresse",
+        "kind": "extract",
+        "name": "Die Basis-Adresse",
+        "comment": "Ein Pfad in das gelesene Dokument, wie in jede andere Antwort.",
+        "vars": {
+          "input": "$gelesen.body"
+        },
+        "data": {
+          "path": "data.base_url"
+        },
+        "x": 876,
+        "y": 432
+      },
+      {
+        "id": "zurueck",
+        "kind": "yaml",
+        "name": "Wieder als YAML",
+        "comment": "Die andere Richtung: eine Antwort umformen und als Konfiguration zurückschicken.",
+        "vars": {
+          "input": "$anmeldung.body.value"
+        },
+        "data": {
+          "mode": "schreiben"
+        },
+        "x": 468,
+        "y": 600
+      },
+      {
+        "id": "notiz",
+        "kind": "log",
+        "name": "Log",
+        "vars": {
+          "rumpf": "$anmeldung.body.text"
+        },
+        "data": {
+          "label": "Formular"
+        },
+        "flow": true,
+        "x": 420,
+        "y": 48
+      },
+      {
+        "id": "ende",
+        "kind": "end",
+        "name": "Ende",
+        "vars": {
+          "felder": "$anmeldung.body.value",
+          "rumpf": "$rumpf.body",
+          "benutzer": "$wer.body",
+          "basis_adresse": "$adresse.body",
+          "als_yaml": "$zurueck.body",
+          "konfig": "$konfig.body",
+          "rumpf_json": "$als_json.body"
+        },
+        "data": {
+          "label": "Ein Formular und ein Dokument"
+        },
+        "x": 876,
+        "y": 48
+      },
+      {
+        "id": "rumpf",
+        "kind": "makeobject",
+        "name": "Ein Rumpf",
+        "comment": "Ohne Klammern und Kommas — und der Wert wird gelesen wie in einer Liste: 4.5 ist eine Zahl, \"8001\" bleibt Text.",
+        "data": {
+          "fields": "kunde = Meier\nbetrag = 4.5\nplz = \"8001\"\nadresse = {\"ort\": \"Bern\"}"
+        },
+        "x": 60,
+        "y": 780
+      },
+      {
+        "id": "als_json",
+        "kind": "totext",
+        "name": "Als JSON",
+        "comment": "Dasselbe, was man sonst von Hand in den JSON-Knoten tippt — nur ohne die Klammern, die man dabei vergisst.",
+        "vars": {
+          "input": "$rumpf.body"
+        },
+        "x": 468,
+        "y": 780
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "notiz"
+      },
+      {
+        "from": "notiz",
+        "to": "ende"
+      }
+    ]
+  }
+}

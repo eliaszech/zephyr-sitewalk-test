@@ -1,0 +1,169 @@
+{
+  "type": "runbook",
+  "name": "Test Verknüpfen",
+  "description": "Zwei Listen, die zusammengehören und sich nur über eine Kennung kennen: die **Bestellungen** tragen ein Feld „kunde“ mit „k-1“ darin, die **Kunden** tragen ihre „id“. Was man wissen will, steht damit auf zwei Karten — und der Join legt es auf eine.\n\nOhne ihn schreibt man dafür eine Schleife: je Bestellung über die Kundenliste filtern, das erste Element nehmen, ein Feld herausziehen. Drei Knoten in einem Durchgang, für eine Zuordnung, die ein Nachschlagewerk in einem Zug beantwortet — und genau das baut der Join intern auf.\n\n**Drei Läufe derselben Sache:**\n\n- **Nur Treffer** (die Vorgabe): Bestellung 1002 zeigt auf „k-3“, den es nicht gibt — sie fällt weg. Übrig bleiben zwei.\n- **Alle aus a**: dieselbe Verknüpfung, aber 1002 bleibt stehen — ohne Kunden daran. Das ist die Wahl, wenn die Liste links vollständig bleiben muss, etwa für eine Summe über alle Beträge.\n- **Flach**: ohne „field“ legt er die Felder beider Seiten zusammen statt das gefundene Element unter einen Namen zu hängen. Bei gleichem Namen gewinnt die rechte Seite, wie beim Merge.\n\nDreierlei sieht man nebenbei: Kunde „k-2“ hat keine Bestellung und taucht **nirgends** auf — verknüpft wird von links nach rechts und nicht in beide Richtungen. Die Felder „key“ und „other side“ dürfen von einer **Leitung** kommen: unten holt sie der flache Join aus einer Antwort, statt sie abzutippen. Und was danach kommt, ist gewöhnliche Listenarbeit — das Map rechts zieht die Namen heraus, die vorher gar nicht an der Bestellung standen.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "kind": "start",
+        "x": 60,
+        "y": 48
+      },
+      {
+        "id": "bestellungen",
+        "kind": "json",
+        "name": "Bestellungen",
+        "comment": "Die linke Seite. 1002 zeigt auf einen Kunden, den es nicht gibt.",
+        "data": {
+          "value": "[\n  {\n    \"nr\": 1001,\n    \"kunde\": \"k-1\",\n    \"betrag\": 49.9\n  },\n  {\n    \"nr\": 1002,\n    \"kunde\": \"k-3\",\n    \"betrag\": 12.5\n  },\n  {\n    \"nr\": 1003,\n    \"kunde\": \"k-1\",\n    \"betrag\": 8\n  }\n]"
+        },
+        "x": 60,
+        "y": 216
+      },
+      {
+        "id": "kunden",
+        "kind": "json",
+        "name": "Kunden",
+        "comment": "Die rechte Seite. „k-2“ hat keine Bestellung — und taucht deshalb in keinem Ergebnis auf.",
+        "data": {
+          "value": "[\n  {\n    \"id\": \"k-1\",\n    \"name\": \"Meier\",\n    \"ort\": \"Bern\"\n  },\n  {\n    \"id\": \"k-2\",\n    \"name\": \"Studer\",\n    \"ort\": \"Chur\"\n  }\n]"
+        },
+        "x": 60,
+        "y": 432
+      },
+      {
+        "id": "treffer",
+        "kind": "joinon",
+        "name": "Nur Treffer",
+        "comment": "Zwei von drei Bestellungen: 1002 findet keinen Kunden und fällt weg.",
+        "vars": {
+          "a": "$bestellungen.body",
+          "b": "$kunden.body"
+        },
+        "data": {
+          "key": "kunde",
+          "on": "id",
+          "into": "kunde",
+          "mode": "nur treffer"
+        },
+        "x": 468,
+        "y": 168
+      },
+      {
+        "id": "mit_luecken",
+        "kind": "joinon",
+        "name": "Alle aus a",
+        "comment": "Dieselbe Verknüpfung, nur bleibt 1002 stehen — ohne Kunden daran. Für eine Summe über alle Beträge ist das die richtige Wahl.",
+        "vars": {
+          "a": "$bestellungen.body",
+          "b": "$kunden.body"
+        },
+        "data": {
+          "key": "kunde",
+          "on": "id",
+          "into": "kunde",
+          "mode": "alle aus a"
+        },
+        "x": 468,
+        "y": 336
+      },
+      {
+        "id": "felder",
+        "kind": "json",
+        "name": "Welche Felder",
+        "comment": "Über welches Feld verbunden wird, steht mal im Knoten und mal in der Antwort davor — hier kommt es von einer Leitung.",
+        "data": {
+          "value": "{\n  \"links\": \"kunde\",\n  \"rechts\": \"id\"\n}"
+        },
+        "x": 60,
+        "y": 660
+      },
+      {
+        "id": "flach",
+        "kind": "joinon",
+        "name": "Flach zusammengelegt",
+        "comment": "Ohne „field“ liegen die Felder beider Seiten nebeneinander: nr, kunde, betrag, id, name, ort. Bei gleichem Namen gewinnt die rechte Seite.",
+        "vars": {
+          "a": "$bestellungen.body",
+          "b": "$kunden.body",
+          "key": "$felder.body.links",
+          "on": "$felder.body.rechts"
+        },
+        "x": 468,
+        "y": 552
+      },
+      {
+        "id": "namen",
+        "kind": "map",
+        "name": "Nur die Namen",
+        "comment": "Was danach kommt, ist gewöhnliche Listenarbeit — nur steht der Name jetzt an der Bestellung.",
+        "vars": {
+          "list": "$treffer.body.items"
+        },
+        "data": {
+          "expr": "item.kunde.name"
+        },
+        "x": 876,
+        "y": 168
+      },
+      {
+        "id": "umsatz",
+        "kind": "sum",
+        "name": "Umsatz insgesamt",
+        "comment": "Über „alle aus a“ und nicht über „nur treffer“: fehlt der Kunde, fehlt trotzdem kein Betrag.",
+        "vars": {
+          "list": "$mit_luecken.body.items"
+        },
+        "data": {
+          "field": "betrag"
+        },
+        "x": 876,
+        "y": 336
+      },
+      {
+        "id": "notiz",
+        "kind": "log",
+        "name": "Log",
+        "vars": {
+          "treffer": "$treffer.body.count",
+          "mit_luecken": "$mit_luecken.body.count"
+        },
+        "data": {
+          "label": "Verknüpft"
+        },
+        "flow": true,
+        "x": 420,
+        "y": 48
+      },
+      {
+        "id": "ende",
+        "kind": "end",
+        "name": "Ende",
+        "vars": {
+          "treffer": "$treffer.body.items",
+          "treffer_anzahl": "$treffer.body.count",
+          "mit_luecken_anzahl": "$mit_luecken.body.count",
+          "flach": "$flach.body.items",
+          "namen": "$namen.body.items",
+          "umsatz": "$umsatz.body"
+        },
+        "data": {
+          "label": "Drei Verknüpfungen"
+        },
+        "x": 876,
+        "y": 48
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "notiz"
+      },
+      {
+        "from": "notiz",
+        "to": "ende"
+      }
+    ]
+  }
+}

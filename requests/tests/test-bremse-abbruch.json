@@ -1,0 +1,190 @@
+{
+  "type": "runbook",
+  "name": "Test Bremse, Abbrechen und Überspringen",
+  "description": "Die drei Handgriffe, die eine Schleife braucht, sobald sie mehr als zählt.\n\n**Die Bremse** hält ein, was ein Dienst verträgt. Sobald die Schleife läuft, rennt man ohne sie in jedes Rate-Limit — und ein 429 mitten im Durchgang ist der Fehler, den man am wenigsten gebrauchen kann, weil er nichts über die Sache aussagt, die man gerade testet.\n\nGebremst wird gegen das *letzte Vorbeikommen* und nicht gegen eine feste Pause: was der Schritt davor ohnehin gebraucht hat, zählt mit. Ein Request von einer halben Sekunde wird bei zwei je Sekunde gar nicht aufgehalten — sonst wären es plötzlich anderthalb Sekunden je Durchgang, und die Zahl am Knoten hiesse etwas anderes, als sie sagt. An „waited“ steht, wie lange *dieser* Durchgang gebremst wurde; steht dort durchweg null, bremst gar nichts, und die Zahl kann weg.\n\nDie Rate darf auch verdrahtet sein: wie viel ein Dienst verträgt, steht in seiner eigenen Antwort öfter als im Knoten — `X-RateLimit-Limit`.\n\n**Überspringen** nimmt das nächste Element, ohne den Rest des Durchgangs. Mit einer Kante ginge das nicht: eine Kante zurück auf die Schleife führt durch genau das hindurch, was man überspringen will. Deshalb steht hier kein Draht — wohin es weitergeht, ergibt sich aus der Schachtelung, und das ist der ganze Grund, dass es den Knoten gibt.\n\n**Abbrechen** verlässt die Schleife: der Ablauf geht dort weiter, wo „done“ hinführt. Der Körper bleibt dabei zu, und die Liste wird losgelassen — ein zweites Betreten aus einer äusseren Schleife heraus liest frisch.\n\nBeide meinen die **innerste** Schleife. Wer in zwei steckt, verlässt die kleinere; das ist die einzige Lesart, bei der man sie nicht jedes Mal nachschlagen muss.\n\nAusserhalb jeder Schleife endet „Abbrechen“ den Lauf — eine Entscheidung und kein Fehler. „Überspringen“ dagegen meint dort einen Durchgang, den es nicht gibt, und meldet das: ein stiller Durchlauf sähe aus, als hätte es geklappt.\n\nZum Ausprobieren: die Bedingung „schon genug?“ steht auf `index >= 3`. Wer sie auf `false` setzt, sieht alle acht Durchgänge; wer sie auf `index == 1` setzt, sieht, dass genau ein Durchgang übersprungen wird und die anderen weiterlaufen.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "kind": "start",
+        "x": 60,
+        "y": 48
+      },
+      {
+        "id": "liste",
+        "kind": "range",
+        "name": "Acht Nummern",
+        "comment": "Steht für das, was sonst aus einer Antwort käme.",
+        "data": {
+          "from": "1",
+          "to": "8",
+          "step": "1"
+        },
+        "x": 60,
+        "y": 216
+      },
+      {
+        "id": "jeder",
+        "kind": "foreach",
+        "name": "Für jede Nummer",
+        "vars": {
+          "list": "$liste.body"
+        },
+        "x": 420,
+        "y": 48
+      },
+      {
+        "id": "bremse",
+        "kind": "throttle",
+        "name": "Höchstens vier je Sekunde",
+        "comment": "Gegen das letzte Vorbeikommen: was der Schritt davor gebraucht hat, zählt mit. An „waited“ steht, wie lange dieser Durchgang gehalten wurde.",
+        "data": {
+          "rate": "4"
+        },
+        "x": 768,
+        "y": 48
+      },
+      {
+        "id": "genug",
+        "kind": "condition",
+        "name": "Schon genug?",
+        "comment": "Ab dem vierten Element ist Schluss — „then“ geht zum Abbruch, „else“ arbeitet weiter.",
+        "vars": {
+          "index": "$jeder.body.index"
+        },
+        "data": {
+          "expr": "index >= 3"
+        },
+        "x": 1120,
+        "y": 48
+      },
+      {
+        "id": "abbruch",
+        "kind": "stop",
+        "name": "Genug",
+        "comment": "Verlässt die Schleife. Der Ablauf geht dort weiter, wo „done“ hinführt — ohne Draht von hier, denn wohin, ergibt sich aus der Schachtelung.",
+        "x": 1470,
+        "y": 12
+      },
+      {
+        "id": "gerade",
+        "kind": "condition",
+        "name": "Gerade Zahl?",
+        "vars": {
+          "n": "$jeder.body.each"
+        },
+        "data": {
+          "expr": "n % 2 == 0"
+        },
+        "x": 1120,
+        "y": 216
+      },
+      {
+        "id": "weiter",
+        "kind": "skip",
+        "name": "Die überspringen wir",
+        "comment": "Nimmt das nächste Element, ohne den Rest des Durchgangs — das Log darunter läuft für diese Zahl nicht.",
+        "x": 1470,
+        "y": 180
+      },
+      {
+        "id": "zeile",
+        "kind": "template",
+        "name": "Der Durchgang als Satz",
+        "vars": {
+          "nummer": "$jeder.body.each",
+          "stelle": "$jeder.body.index",
+          "gehalten": "$bremse.body.waited"
+        },
+        "data": {
+          "text": "#{{stelle}} → {{nummer}} (gebremst: {{gehalten}} ms)"
+        },
+        "x": 1120,
+        "y": 396
+      },
+      {
+        "id": "melden",
+        "kind": "log",
+        "name": "Ungerade melden",
+        "vars": {
+          "input": "$zeile.body"
+        },
+        "data": {
+          "label": "Durchgang"
+        },
+        "flow": true,
+        "x": 1470,
+        "y": 348
+      },
+      {
+        "id": "sammler",
+        "kind": "collect",
+        "name": "Alle gemeldeten",
+        "comment": "Sammelt über die Durchgänge hinweg — ohne ihn hielte der Graph nur den letzten Wert.",
+        "vars": {
+          "input": "$jeder.body.each"
+        },
+        "x": 1820,
+        "y": 348
+      },
+      {
+        "id": "ende",
+        "kind": "end",
+        "name": "Ende",
+        "vars": {
+          "durchgelaufen": "$sammler.body.items",
+          "wie_viele": "$sammler.body.count",
+          "zuletzt": "$jeder.body.each",
+          "stelle": "$jeder.body.index"
+        },
+        "data": {
+          "label": "Was durchkam"
+        },
+        "x": 1820,
+        "y": 12
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "jeder"
+      },
+      {
+        "from": "jeder.each",
+        "to": "bremse"
+      },
+      {
+        "from": "bremse",
+        "to": "genug"
+      },
+      {
+        "from": "genug.then",
+        "to": "abbruch"
+      },
+      {
+        "from": "genug.else",
+        "to": "gerade"
+      },
+      {
+        "from": "gerade.then",
+        "to": "weiter"
+      },
+      {
+        "from": "gerade.else",
+        "to": "melden"
+      },
+      {
+        "from": "melden",
+        "to": "sammler"
+      },
+      {
+        "from": "sammler",
+        "to": "jeder"
+      },
+      {
+        "from": "jeder.done",
+        "to": "ende"
+      }
+    ]
+  }
+}

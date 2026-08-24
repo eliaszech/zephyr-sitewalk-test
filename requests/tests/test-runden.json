@@ -27,7 +27,7 @@
         "name": "Auf Rappen",
         "comment": "Zwei Stellen, kaufmännisch: 4.01. Über die binäre Näherung gerechnet käme 4.00 heraus.",
         "vars": {
-          "input": "$betrag.body"
+          "value": "$betrag.body"
         },
         "data": {
           "digits": "2"
@@ -40,7 +40,7 @@
         "kind": "round",
         "name": "Aufgerundet",
         "vars": {
-          "input": "$betrag.body"
+          "value": "$betrag.body"
         },
         "data": {
           "digits": "2",
@@ -54,7 +54,7 @@
         "kind": "round",
         "name": "Abgerundet",
         "vars": {
-          "input": "$betrag.body"
+          "value": "$betrag.body"
         },
         "data": {
           "digits": "2",
@@ -79,7 +79,7 @@
         "name": "Auf ganze Franken",
         "comment": "Vom Null weg: −2. Ein Runden, das die Hälfte immer nach oben nimmt, machte daraus −1.",
         "vars": {
-          "input": "$gutschrift.body"
+          "value": "$gutschrift.body"
         },
         "x": 420,
         "y": 552

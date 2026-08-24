@@ -1,0 +1,99 @@
+{
+  "type": "runbook",
+  "name": "Test Zerlegen",
+  "description": "Ein Objekt, fünf Werte daraus — auf **einer** Karte statt auf vier.\n\nOhne den Knoten stünden hier vier Auslesen-Karten nebeneinander, oder viermal `$antwort.body.…` in fremden Eingängen: Verbindungen, die es gibt und die man im Bild nicht findet. Jede Zeile im Feld „outputs“ wird zu einem Anschluss, und der hängt an einer Leitung wie jeder andere.\n\n**Zwei Schreibweisen je Zeile.** `kunde.name` heisst am Ausgang „name“ — die letzte Stufe des Pfades. Wer das nicht will, schreibt den Namen davor: `wer = kunde.name`. Dieselbe Regel gilt links wie rechts, und eine Stelle in einer Liste ist auch nur ein Pfad: `posten[0].artikel`.\n\n**Ein Pfad ins Leere gibt „null“** und nicht nichts. Der Ausgang „fehlt“ unten zeigt auf ein Feld, das die Antwort nicht hat — dort steht `null`, und das ist eine Auskunft. „Nichts“ hiesse an einem Anschluss „noch nicht gelaufen“, und das wäre gelogen: gelaufen ist er, gefunden hat er nur nichts.\n\n**Die Ausgänge stehen am Knoten und nicht im letzten Ergebnis.** Das ist der Unterschied zu einem Knoten, der sich seine Anschlüsse aus der Antwort holt: dessen Höhe hinge davon ab, was zuletzt zurückkam, eine Leitung verschwände zwischen zwei Läufen, und vor dem ersten hätte er gar nichts. Hier steht die Karte vollständig da, bevor irgendetwas gelaufen ist — dieselbe Bauart wie die Parameter am Start und die Variablen eines Skripts.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "kind": "start",
+        "x": 60,
+        "y": 48
+      },
+      {
+        "id": "antwort",
+        "kind": "json",
+        "name": "Eine Antwort",
+        "comment": "Wie sie ein Request zurückgäbe: verschachtelt, mit einer Liste darin.",
+        "data": {
+          "value": "{\n  \"bestellung\": {\n    \"nr\": 1001,\n    \"betrag\": 49.9,\n    \"waehrung\": \"CHF\"\n  },\n  \"kunde\": {\n    \"id\": \"k-1\",\n    \"name\": \"Meier\",\n    \"ort\": \"Bern\"\n  },\n  \"posten\": [\n    {\n      \"artikel\": \"Zwetschgen\",\n      \"menge\": 3\n    },\n    {\n      \"artikel\": \"Birnen\",\n      \"menge\": 1\n    }\n  ]\n}"
+        },
+        "x": 60,
+        "y": 216
+      },
+      {
+        "id": "zerlegt",
+        "kind": "unpack",
+        "name": "Zerlegt",
+        "comment": "Fünf Zeilen, fünf Ausgänge. „fehlt.tief“ gibt es in der Antwort nicht — der Ausgang heisst „tief“ und trägt null.",
+        "vars": {
+          "object": "$antwort.body"
+        },
+        "data": {
+          "fields": "bestellung.nr\nbetrag = bestellung.betrag\nwer = kunde.name\nposten[0].artikel\nfehlt.tief"
+        },
+        "x": 468,
+        "y": 216
+      },
+      {
+        "id": "satz",
+        "kind": "template",
+        "name": "Ein Satz daraus",
+        "comment": "Was danach kommt, ist gewöhnliche Arbeit — nur hängt jeder Wert an einer Leitung, die man sieht.",
+        "vars": {
+          "nr": "$zerlegt.body.nr",
+          "wer": "$zerlegt.body.wer",
+          "betrag": "$zerlegt.body.betrag"
+        },
+        "data": {
+          "text": "Bestellung {{nr}} von {{wer}} über {{betrag}} Franken."
+        },
+        "x": 876,
+        "y": 216
+      },
+      {
+        "id": "notiz",
+        "kind": "log",
+        "name": "Log",
+        "vars": {
+          "wer": "$zerlegt.body.wer",
+          "fehlt": "$zerlegt.body.tief"
+        },
+        "data": {
+          "label": "Zerlegt"
+        },
+        "flow": true,
+        "x": 420,
+        "y": 48
+      },
+      {
+        "id": "ende",
+        "kind": "end",
+        "name": "Ende",
+        "vars": {
+          "nr": "$zerlegt.body.nr",
+          "betrag": "$zerlegt.body.betrag",
+          "wer": "$zerlegt.body.wer",
+          "erster_artikel": "$zerlegt.body.artikel",
+          "fehlt": "$zerlegt.body.tief",
+          "satz": "$satz.body"
+        },
+        "data": {
+          "label": "Fünf Ausgänge und ein Satz"
+        },
+        "x": 876,
+        "y": 48
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "notiz"
+      },
+      {
+        "from": "notiz",
+        "to": "ende"
+      }
+    ]
+  }
+}

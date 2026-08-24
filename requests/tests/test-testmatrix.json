@@ -1,0 +1,126 @@
+{
+  "type": "runbook",
+  "name": "Test Testmatrix",
+  "description": "Zwei Wege zu den Fällen, die man sonst abtippt: die **Testmatrix** sagt, *welche* Fälle es gibt, **Aus Schema** sagt, *wie ein Rumpf aussieht*.\n\n**Die Matrix** kreuzt beliebig viele Achsen. Drei Rollen mal vier Endpunkte mal zwei Sprachen sind vierundzwanzig Fälle, und die tippt niemand ab — schon gar nicht ein zweites Mal, wenn eine fünfte Rolle dazukommt. Die letzte Achse läuft am schnellsten, wie an einem Kilometerzähler: so liest sich die Liste wie die Tabelle, die man im Kopf hatte.\n\nDas „Kreuzprodukt“ daneben kann dasselbe — aber nur für zwei Listen. Für drei stehen zwei Karten hintereinander, und die zweite bekommt Objekte in ihr „a“: heraus kommt `{ a: { rolle, endpunkt }, b: sprache }`, ein Fall in zwei Schachteln statt einer Zeile. Hier ist jeder Fall ein flaches Objekt mit einem Feld je Achse.\n\nJe Wert dieselbe Lesart wie in einem Listenfeld: `8001` ist eine Zahl, `\"8001\"` der Weg, sie als Text zu meinen. Die Achsen dürfen auch verdrahtet ankommen — dann *ersetzen* sie das Feld, denn eine Tabelle ist ein Ding und keine Aufzählung aus zwei Herkünften.\n\nGerechnet wird nur, was sich geändert haben kann: dieselbe Matrix mit denselben Achsen ist beim zweiten Hinsehen dieselbe Liste und nicht dieselbe Rechnung. Vierundzwanzig Durchgänge der Schleife daneben leiten hundertmal ab — vorher war das hundertmal dasselbe Kreuzprodukt.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "kind": "start",
+        "x": 60,
+        "y": 48
+      },
+      {
+        "id": "faelle",
+        "kind": "matrix",
+        "name": "Die Fälle",
+        "comment": "Drei Achsen, flach: jeder Fall ist ein Objekt mit einem Feld je Achse.",
+        "data": {
+          "axes": "rolle = admin, gast, anonym\nendpunkt = /orders, /users, /health, /admin\nsprache = de, fr"
+        },
+        "x": 60,
+        "y": 216
+      },
+      {
+        "id": "wieviele",
+        "kind": "template",
+        "name": "Wie viele Fälle",
+        "vars": {
+          "anzahl": "$faelle.body.count"
+        },
+        "data": {
+          "text": "{{anzahl}} Fälle — drei mal vier mal zwei."
+        },
+        "x": 420,
+        "y": 228
+      },
+      {
+        "id": "zahlen",
+        "kind": "matrix",
+        "name": "Achse mit Zahlen",
+        "comment": "Je Wert dieselbe Lesart wie im Listenfeld: 8001 ist eine Zahl, \"3000\" ein Text.",
+        "data": {
+          "axes": "plz = 8001, \"3000\"\nstufe = 1, 2"
+        },
+        "x": 60,
+        "y": 396
+      },
+      {
+        "id": "jeder",
+        "kind": "foreach",
+        "name": "Jeder Fall",
+        "comment": "Die Rückkante von „melden“ hierher ist die ganze Schleife.",
+        "vars": {
+          "list": "$faelle.body.items"
+        },
+        "x": 420,
+        "y": 24
+      },
+      {
+        "id": "zeile",
+        "kind": "template",
+        "name": "Der Fall als Satz",
+        "vars": {
+          "nummer": "$jeder.body.index",
+          "rolle": "$jeder.body.each.rolle",
+          "endpunkt": "$jeder.body.each.endpunkt",
+          "sprache": "$jeder.body.each.sprache"
+        },
+        "data": {
+          "text": "#{{nummer}} {{rolle}} → {{endpunkt}} ({{sprache}})"
+        },
+        "x": 768,
+        "y": 252
+      },
+      {
+        "id": "melden",
+        "kind": "log",
+        "name": "Fall melden",
+        "comment": "Eine Zeile je Vorbeikommen — das steht im Journal, nicht in den Ergebnissen.",
+        "vars": {
+          "input": "$zeile.body"
+        },
+        "data": {
+          "label": "Fall"
+        },
+        "flow": true,
+        "x": 780,
+        "y": 24
+      },
+      {
+        "id": "ende",
+        "kind": "end",
+        "name": "Ende",
+        "vars": {
+          "faelle": "$faelle.body.count",
+          "alle_faelle": "$faelle.body.items",
+          "zahlen": "$zahlen.body.items",
+          "uebersicht": "$wieviele.body"
+        },
+        "data": {
+          "label": "Die Fälle"
+        },
+        "x": 1260,
+        "y": 12
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "jeder"
+      },
+      {
+        "from": "jeder.each",
+        "to": "melden"
+      },
+      {
+        "from": "melden",
+        "to": "jeder"
+      },
+      {
+        "from": "jeder.done",
+        "to": "ende"
+      }
+    ]
+  }
+}

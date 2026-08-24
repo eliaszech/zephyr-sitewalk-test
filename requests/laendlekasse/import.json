@@ -6,9 +6,6 @@
       {
         "id": "start",
         "kind": "start",
-        "params": {
-          "test": ""
-        },
         "x": -492,
         "y": 24
       },
@@ -45,7 +42,7 @@
         },
         "group": "gruppe",
         "x": 1332,
-        "y": 312
+        "y": 360
       },
       {
         "id": "template",
@@ -58,7 +55,7 @@
         },
         "group": "gruppe",
         "x": 1332,
-        "y": 228
+        "y": 276
       },
       {
         "id": "extract",
@@ -114,7 +111,7 @@
         },
         "group": "gruppe",
         "x": 1332,
-        "y": 144
+        "y": 168
       },
       {
         "id": "export",

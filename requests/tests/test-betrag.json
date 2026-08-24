@@ -1,0 +1,161 @@
+{
+  "type": "runbook",
+  "name": "Test Betrag",
+  "description": "Was eine Zahlungsschnittstelle schickt: **4990** und **„chf“**. Gemeint sind 49.90 Franken, und bis hierher stand dafür ein Teilen durch hundert in einem Transform — das beim Yen um hundert danebenläge.\n\n**Die Stellenzahl gehört der Währung.** Franken und Euro haben zwei, der Yen keine, der Dinar drei. Der Knoten fragt sie bei `Intl` nach, statt sie sich einstellen zu lassen: eingestellt wäre sie für eine Währung richtig und für die nächste falsch. Dieselbe Zahl beantwortet beides — die Schreibweise *und* das Umrechnen aus der kleinsten Einheit.\n\n**Vier Schreibweisen des Zeichens:** Symbol, Code, Name — oder keines, für eine Spalte in einer Tabelle, über der die Währung schon steht.\n\n**Die Sprache entscheidet den Rest:** `CHF 49.90` hier, `49,90 €` in Deutschland, `€49.90` in den USA. Sie steht am Knoten und nicht am Rechner — sonst schriebe derselbe Lauf bei zwei Leuten zwei verschiedene Berichte. Unten holt sie der Knoten aus dem Datensatz des Kunden.\n\n**Heraus kommt beides**: der Text für den Bericht, die Zahl für die nächste Rechnung. Rechts hängt eine Mehrwertsteuer daran — die rechnet mit dem Wert und nicht mit „CHF 49.90“.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "kind": "start",
+        "x": 60,
+        "y": 48
+      },
+      {
+        "id": "zahlung",
+        "kind": "json",
+        "name": "Eine Zahlung",
+        "comment": "Wie sie von einer Zahlungsschnittstelle zurückkommt: Betrag in Rappen, Währung als Code.",
+        "data": {
+          "value": "{\n  \"amount\": 4990,\n  \"currency\": \"chf\",\n  \"kunde\": {\n    \"sprache\": \"de-DE\"\n  }\n}"
+        },
+        "x": 60,
+        "y": 216
+      },
+      {
+        "id": "betrag",
+        "kind": "money",
+        "name": "Als Betrag",
+        "comment": "4990 Rappen werden 49.90 — umgerechnet mit der Stellenzahl der Währung, beim Yen also gar nicht.",
+        "vars": {
+          "amount": "$zahlung.body.amount",
+          "currency": "$zahlung.body.currency"
+        },
+        "data": {
+          "unit": "kleinste einheit",
+          "display": "symbol"
+        },
+        "x": 468,
+        "y": 168
+      },
+      {
+        "id": "fuer_kunde",
+        "kind": "money",
+        "name": "Für den Kunden",
+        "comment": "Dieselbe Zahlung in seiner Sprache: die steht in seinem Datensatz und nicht im Knoten.",
+        "vars": {
+          "amount": "$zahlung.body.amount",
+          "currency": "$zahlung.body.currency",
+          "locale": "$zahlung.body.kunde.sprache"
+        },
+        "data": {
+          "unit": "kleinste einheit",
+          "display": "symbol"
+        },
+        "x": 468,
+        "y": 336
+      },
+      {
+        "id": "spalte",
+        "kind": "money",
+        "name": "Für eine Tabelle",
+        "comment": "Ohne Zeichen: die Währung steht dort schon über der Spalte.",
+        "vars": {
+          "amount": "$zahlung.body.amount",
+          "currency": "$zahlung.body.currency"
+        },
+        "data": {
+          "unit": "kleinste einheit",
+          "display": "keines"
+        },
+        "x": 468,
+        "y": 504
+      },
+      {
+        "id": "yen",
+        "kind": "money",
+        "name": "Derselbe Betrag in Yen",
+        "comment": "Der Yen hat keine Nachkommastellen — 4990 sind hier viertausendneunhundertneunzig und nicht 49.90.",
+        "data": {
+          "amount": "4990",
+          "currency": "JPY",
+          "unit": "kleinste einheit",
+          "display": "code"
+        },
+        "x": 468,
+        "y": 660
+      },
+      {
+        "id": "mwst",
+        "kind": "calc",
+        "name": "Mehrwertsteuer",
+        "comment": "Rechnet mit dem *Wert* und nicht mit „CHF 49.90“ — dafür gibt der Knoten beides heraus.",
+        "vars": {
+          "a": "$betrag.body.value"
+        },
+        "data": {
+          "op": "×",
+          "b": "0.081"
+        },
+        "x": 876,
+        "y": 168
+      },
+      {
+        "id": "steuer",
+        "kind": "money",
+        "name": "Steuer als Betrag",
+        "vars": {
+          "amount": "$mwst.body",
+          "currency": "$zahlung.body.currency"
+        },
+        "data": {
+          "display": "symbol"
+        },
+        "x": 1284,
+        "y": 168
+      },
+      {
+        "id": "notiz",
+        "kind": "log",
+        "name": "Log",
+        "vars": {
+          "betrag": "$betrag.body.text",
+          "wert": "$betrag.body.value"
+        },
+        "data": {
+          "label": "Betrag"
+        },
+        "flow": true,
+        "x": 420,
+        "y": 48
+      },
+      {
+        "id": "ende",
+        "kind": "end",
+        "name": "Ende",
+        "vars": {
+          "betrag": "$betrag.body.text",
+          "wert": "$betrag.body.value",
+          "fuer_kunde": "$fuer_kunde.body.text",
+          "spalte": "$spalte.body.text",
+          "yen": "$yen.body.text",
+          "steuer": "$steuer.body.text"
+        },
+        "data": {
+          "label": "Ein Betrag, fünf Schreibweisen"
+        },
+        "x": 876,
+        "y": 48
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "notiz"
+      },
+      {
+        "from": "notiz",
+        "to": "ende"
+      }
+    ]
+  }
+}
