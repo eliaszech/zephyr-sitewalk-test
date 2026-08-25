@@ -41,7 +41,7 @@
           "input": "$kurz.body"
         },
         "x": 468,
-        "y": 216
+        "y": 252
       },
       {
         "id": "code",
@@ -68,7 +68,7 @@
           "expr": "input > 5"
         },
         "x": 468,
-        "y": 48
+        "y": 60
       },
       {
         "id": "notiz",
@@ -82,8 +82,8 @@
           "label": "Zweiter Faktor"
         },
         "flow": true,
-        "x": 420,
-        "y": 48
+        "x": 468,
+        "y": -144
       },
       {
         "id": "ende",
@@ -115,12 +115,10 @@
       },
       {
         "from": "reicht",
-        "fromPort": "then",
         "to": "ende"
       },
       {
         "from": "reicht",
-        "fromPort": "else",
         "to": "ende"
       }
     ]

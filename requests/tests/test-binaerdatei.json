@@ -1,0 +1,115 @@
+{
+  "type": "runbook",
+  "name": "Test Binärdatei",
+  "description": "Ein Bild oder Dokument als Anhang — was „Datei lesen“ als Text nicht liefern kann.\n\n**Immer base64**, anders als beim Lesen daneben: dort entscheidet der Inhalt, ob Text oder Bytes herauskommen, hier ist die Frage schon beantwortet. Eine CSV ist gültiges UTF-8 und trotzdem ein Anhang — und ein Bild als Zeichen durchzureichen ergäbe Zeichensalat.\n\n**Der Medientyp kommt von der Endung.** Nicht vom Inhalt, anders als beim Lesen: den Typ eines Anhangs erwartet die Gegenstelle im Header, und dort steht, was die Datei zu sein behauptet. Was nicht in der Tabelle steht, ist `application/octet-stream` — das ist keine Notlüge, sondern heisst genau „Bytes, deren Art ich nicht kenne“.\n\n**Drei Ausgänge, weil ein Anhang aus dreierlei besteht:** die Bytes, ihre Menge und die Art. Zusammengesetzt ergeben sie das `data:`-URL, mit dem ein Bild in einem JSON-Rumpf reist — die Vorlage daneben zeigt es.\n\n**Zusammengesetzt wird die Adresse vom Data-URL-Knoten daneben**, nicht von einer Vorlage: mit einer Vorlage vergisst man das „;base64“, und heraus kommt eine Adresse, die richtig aussieht und am anderen Ende Zeichensalat liefert. Die andere Richtung — eine Adresse wieder auseinandernehmen — geht mit einer Vorlage ohnehin nicht.\n\n**Sechzehn Megabyte sind die Grenze.** Base64 macht aus drei Bytes vier, und das Ergebnis liegt danach im Lauf, im Ergebnis des Knotens und in allem, was daran hängt. Darüber sagt es der Knoten, statt die Anwendung stillstehen zu lassen.\n\nIm Ablauf und keine Formel, aus demselben Grund wie beim Lesen: bei einem Bild von acht Megabyte ist das der Unterschied zwischen einer Fläche, die sich zeichnen lässt, und einer, die steht.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "kind": "start",
+        "x": 60,
+        "y": 48
+      },
+      {
+        "id": "bild",
+        "kind": "binary",
+        "name": "Das Bild",
+        "comment": "97 Bytes PNG. Die Karte zeigt Grösse und Art — die Bytes sieht man dort nicht, base64 sieht in jeder Vorschau gleich aus.",
+        "data": {
+          "file": "daten/punkt.png"
+        },
+        "x": 420,
+        "y": 48
+      },
+      {
+        "id": "tabelle",
+        "kind": "binary",
+        "name": "Eine CSV als Anhang",
+        "comment": "Gültiges UTF-8 und trotzdem ein Anhang: „Datei lesen“ gäbe hier Text, hier kommen Bytes.",
+        "data": {
+          "file": "daten/kennungen.txt"
+        },
+        "x": 420,
+        "y": 300
+      },
+      {
+        "id": "url",
+        "kind": "dataurl",
+        "name": "Als data:-URL",
+        "comment": "Der Knoten statt einer Vorlage: das „;base64“ vergisst er nicht, und die andere Richtung kann er auch.",
+        "vars": {
+          "input": "$bild.body.data",
+          "type": "$bild.body.type"
+        },
+        "x": 792,
+        "y": 264
+      },
+      {
+        "id": "zurueck",
+        "kind": "dataurl",
+        "name": "Und wieder auseinander",
+        "comment": "Was aus einer Antwort als data:-URL zurückkommt, muss man zerlegen — mit einer Vorlage geht das gar nicht.",
+        "vars": {
+          "input": "$url.body.url"
+        },
+        "data": {
+          "mode": "decode"
+        },
+        "x": 1152,
+        "y": 300
+      },
+      {
+        "id": "notiz",
+        "kind": "log",
+        "name": "Log",
+        "vars": {
+          "typ": "$bild.body.type",
+          "bytes": "$bild.body.size",
+          "auch_das": "$tabelle.body.type"
+        },
+        "data": {
+          "label": "Anhang"
+        },
+        "flow": true,
+        "x": 792,
+        "y": 48
+      },
+      {
+        "id": "ende",
+        "kind": "end",
+        "name": "Ende",
+        "vars": {
+          "typ": "$bild.body.type",
+          "bytes": "$bild.body.size",
+          "url": "$url.body.url",
+          "gelesen_typ": "$zurueck.body.type",
+          "gleiche_bytes": "$zurueck.body.data",
+          "textdatei_als_anhang": "$tabelle.body.type"
+        },
+        "data": {
+          "label": "Ein Bild und eine Textdatei"
+        },
+        "x": 1512,
+        "y": 48
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "bild"
+      },
+      {
+        "from": "bild",
+        "to": "tabelle"
+      },
+      {
+        "from": "tabelle",
+        "to": "notiz"
+      },
+      {
+        "from": "notiz",
+        "to": "ende"
+      }
+    ]
+  }
+}

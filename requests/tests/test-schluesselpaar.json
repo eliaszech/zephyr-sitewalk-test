@@ -1,0 +1,118 @@
+{
+  "type": "runbook",
+  "name": "Test Schlüsselpaar",
+  "description": "Ein frisches Paar für einen Test, der eines braucht: einen Deploy-Key anlegen und im selben Lauf benutzen, einen Server bereitstellen, ein RS256-Token unterschreiben.\n\n**Im Ablauf und keine Formel.** Ein Schlüssel wird *erzeugt*, und zwar einmal. Eine Formel würfelte bei jedem Zeichnen ein neues Paar — und das eine, das man gerade in einen Dienst gelegt hat, wäre weg. Aus demselben Grund hängt er auch nicht am Würfel des Laufs: derselbe Lauf zweimal gibt zweimal ein anderes Paar, und das ist hier die Zusage und nicht der Mangel.\n\n**Drei Formen, dieselben Zahlen.** `openssh` schreibt die Zeile für `authorized_keys` und die Datei für `ssh -i`; `pem` die beiden Blöcke, die ein Zertifikatswerkzeug erwartet; `jwk` das JSON, mit dem die Token-Verfahren arbeiten. Was man wählt, entscheidet die Gegenstelle und nicht der Geschmack.\n\n**Der Fingerabdruck ist immer derselbe**, gleich welche Form gewählt ist: `SHA256:…` über den SSH-Blob des öffentlichen Teils — genau das, was `ssh-keygen -l` schreibt und was GitHub neben einem Deploy-Key anzeigt. Ein Fingerabdruck, der je nach Ausgabeformat anders aussähe, beantwortete die Frage nicht, für die man ihn liest.\n\n**Der private Teil steht offen im Ergebnis.** Er gehört in keine Datei, die ins Commit geht — deshalb schreibt dieses Runbook auch nichts weg. Wer ihn braucht, holt ihn aus dem Ergebnis heraus, solange der Lauf offen ist.\n\nGeprüft gegen `ssh-keygen`: die geschriebene Zeile wird gelesen, der Fingerabdruck stimmt mit `ssh-keygen -lf` überein, und aus dem privaten Teil leitet `ssh-keygen -y` genau den öffentlichen wieder ab — für Ed25519, RSA und ECDSA.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "kind": "start",
+        "x": 60,
+        "y": 48
+      },
+      {
+        "id": "deploy",
+        "kind": "keypair",
+        "name": "Deploy-Key",
+        "comment": "Ed25519 in OpenSSH: die Zeile geht in authorized_keys, die Datei an ssh -i.",
+        "data": {
+          "algo": "ed25519",
+          "form": "openssh"
+        },
+        "x": 420,
+        "y": 48
+      },
+      {
+        "id": "signer",
+        "kind": "keypair",
+        "name": "RS256-Schlüssel",
+        "comment": "RSA in PEM: das ist, was ein Token-Endpunkt zum Unterschreiben erwartet.",
+        "data": {
+          "algo": "rsa-2048",
+          "form": "pem"
+        },
+        "x": 420,
+        "y": 300
+      },
+      {
+        "id": "jwks",
+        "kind": "keypair",
+        "name": "Als JWK",
+        "comment": "Dieselben Zahlen als JSON — so legt man einen Schlüssel in ein JWKS.",
+        "data": {
+          "algo": "ec-p256",
+          "form": "jwk"
+        },
+        "x": 420,
+        "y": 552
+      },
+      {
+        "id": "zeile",
+        "kind": "note",
+        "name": "Notiz",
+        "data": {
+          "text": "Der Fingerabdruck steht auf der Karte, nicht der Schlüssel: er ist kurz genug für eine Zeile und die Angabe, mit der man den Schlüssel an der Gegenstelle wiedererkennt."
+        },
+        "w": 288,
+        "h": 132,
+        "x": 60,
+        "y": 216
+      },
+      {
+        "id": "notiz",
+        "kind": "log",
+        "name": "Fingerabdrücke",
+        "vars": {
+          "ssh": "$deploy.body.fingerprint",
+          "rsa": "$signer.body.fingerprint",
+          "ec": "$jwks.body.fingerprint"
+        },
+        "data": {
+          "label": "Drei Paare"
+        },
+        "flow": true,
+        "x": 828,
+        "y": 48
+      },
+      {
+        "id": "ende",
+        "kind": "end",
+        "name": "Ende",
+        "comment": "Der öffentliche Teil und die Fingerabdrücke. Der private steht im Ergebnis der Knoten und gehört in keine Datei.",
+        "vars": {
+          "authorized_keys": "$deploy.body.public",
+          "fingerprint": "$deploy.body.fingerprint",
+          "rsa_public": "$signer.body.public",
+          "jwk_public": "$jwks.body.public"
+        },
+        "data": {
+          "label": "Drei Schlüssel"
+        },
+        "x": 1188,
+        "y": 48
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "deploy"
+      },
+      {
+        "from": "deploy",
+        "to": "signer"
+      },
+      {
+        "from": "signer",
+        "to": "jwks"
+      },
+      {
+        "from": "jwks",
+        "to": "notiz"
+      },
+      {
+        "from": "notiz",
+        "to": "ende"
+      }
+    ]
+  }
+}

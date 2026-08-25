@@ -1,0 +1,202 @@
+{
+  "type": "runbook",
+  "name": "Test Status Name",
+  "description": "**Was ein Statuscode heisst.** Im Antwort-Streifen steht der Text, den der Dienst mitgeschickt hat — dort ist das richtig: gezeigt wird, was zurückkam. In einem Runbook liegt aber oft nur die *Zahl* auf einer Leitung, und „404“ in einem Bericht ist etwas, das der Leser nachschlagen muss.\n\n**Vier Auskünfte, weil vier Fragen daran hängen:** wie es heisst (`name`), wie es ganz heisst (`text`, also „404 Not Found“ — das, was in eine Meldung geht), wozu es gehört (`class`) und ob es gut ging (`ok`, unter 400 — dieselbe Grenze, die auch die Fläche zieht).\n\n**`class` ist der Wert, an dem ein Switch verzweigt:** `info`, `success`, `redirect`, `client`, `server`. Ein Wort statt einer Rechnung über der Hunderterstelle, die sonst in jedem zweiten Runbook als Ausdruck dastünde.\n\n**Die Klasse kommt aus der Hunderterstelle und nicht aus der Tabelle.** So bleibt sie auch für einen Code richtig, den keine Norm kennt: `599` steht nirgends und ist trotzdem ein Fehler des Servers. Sein Name ist dann leer — ein erfundener sähe in einem Bericht aus wie einer aus der Norm.\n\n**Was gar kein Statuscode ist, ist ein Fehler.** Eine `42` am Eingang ist keine Antwort eines Dienstes, sondern eine falsch gezogene Leitung, und die soll man sehen.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "kind": "start",
+        "x": 60,
+        "y": 48
+      },
+      {
+        "id": "code",
+        "kind": "number",
+        "name": "Was zurückkam",
+        "comment": "Wie er aus einer Antwort käme: $req.body.status wäre hier die Leitung.",
+        "data": {
+          "value": "404"
+        },
+        "x": 60,
+        "y": 216
+      },
+      {
+        "id": "name",
+        "kind": "httpstatus",
+        "name": "Status Name",
+        "comment": "Vier Ausgänge auf eine Zahl: Name, ganze Zeile, Klasse, ob es gut ging.",
+        "vars": {
+          "status": "$code.body"
+        },
+        "x": 456,
+        "y": 228
+      },
+      {
+        "id": "eigen",
+        "kind": "httpstatus",
+        "name": "Ein eigener Code",
+        "comment": "599 kennt keine Norm. Die Klasse steht trotzdem da — sie kommt aus der Hunderterstelle. Der Name bleibt leer.",
+        "data": {
+          "status": "599"
+        },
+        "x": 456,
+        "y": 420
+      },
+      {
+        "id": "gut",
+        "kind": "httpstatus",
+        "name": "Und einer, der ging",
+        "comment": "Zum Vergleich daneben: unter 400 sagt „ok“ ja.",
+        "data": {
+          "status": "201"
+        },
+        "x": 456,
+        "y": 612
+      },
+      {
+        "id": "satz",
+        "kind": "template",
+        "name": "Für den Bericht",
+        "comment": "„text“ ist die fertige Zeile — ohne ihn stünde hier eine Vorlage aus Zahl und Name.",
+        "vars": {
+          "was": "$name.body.text"
+        },
+        "data": {
+          "text": "Der Dienst antwortete mit {{was}}."
+        },
+        "x": 876,
+        "y": 384
+      },
+      {
+        "id": "welche",
+        "kind": "switch",
+        "name": "Welche Klasse?",
+        "comment": "Wozu „class“ da ist: ein Wort statt einer Rechnung über der Hunderterstelle. Die erste Zeile, die zutrifft, gewinnt.",
+        "vars": {
+          "input": "$name.body.class"
+        },
+        "data": {
+          "cases": "input == \"success\"\ninput == \"redirect\"\ninput == \"client\""
+        },
+        "x": 876,
+        "y": 48
+      },
+      {
+        "id": "log_success",
+        "kind": "log",
+        "name": "Angekommen",
+        "vars": {
+          "was": "$name.body.text"
+        },
+        "data": {
+          "label": "success"
+        },
+        "flow": true,
+        "x": 1284,
+        "y": 24
+      },
+      {
+        "id": "log_redirect",
+        "kind": "log",
+        "name": "Woandershin",
+        "vars": {
+          "was": "$name.body.text"
+        },
+        "data": {
+          "label": "redirect"
+        },
+        "flow": true,
+        "x": 1284,
+        "y": 192
+      },
+      {
+        "id": "log_client",
+        "kind": "log",
+        "name": "Unsere Schuld",
+        "vars": {
+          "was": "$name.body.text"
+        },
+        "data": {
+          "label": "client"
+        },
+        "flow": true,
+        "x": 1284,
+        "y": 360
+      },
+      {
+        "id": "log_server",
+        "kind": "log",
+        "name": "Sonst",
+        "comment": "Was keine der drei Zeilen trifft: ein Fehler des Servers oder eine Zwischenmeldung.",
+        "vars": {
+          "was": "$name.body.text"
+        },
+        "data": {
+          "label": "else"
+        },
+        "flow": true,
+        "x": 1284,
+        "y": 528
+      },
+      {
+        "id": "ende",
+        "kind": "end",
+        "name": "Ende",
+        "vars": {
+          "name": "$name.body.name",
+          "text": "$name.body.text",
+          "klasse": "$name.body.class",
+          "ok": "$name.body.ok",
+          "eigener_name": "$eigen.body.name",
+          "eigene_klasse": "$eigen.body.class",
+          "guter_ok": "$gut.body.ok",
+          "satz": "$satz.body"
+        },
+        "data": {
+          "label": "Name, Klasse und der Satz dazu"
+        },
+        "x": 1692,
+        "y": 216
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "welche"
+      },
+      {
+        "from": "welche.1",
+        "to": "log_success"
+      },
+      {
+        "from": "welche.2",
+        "to": "log_redirect"
+      },
+      {
+        "from": "welche.3",
+        "to": "log_client"
+      },
+      {
+        "from": "welche.else",
+        "to": "log_server"
+      },
+      {
+        "from": "log_success",
+        "to": "ende"
+      },
+      {
+        "from": "log_redirect",
+        "to": "ende"
+      },
+      {
+        "from": "log_client",
+        "to": "ende"
+      },
+      {
+        "from": "log_server",
+        "to": "ende"
+      }
+    ]
+  }
+}

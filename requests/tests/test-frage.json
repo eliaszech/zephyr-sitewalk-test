@@ -1,0 +1,132 @@
+{
+  "type": "runbook",
+  "name": "Test Frage",
+  "description": "Fragt während des Laufs nach einem Wert — ein Einmalkennwort, eine Kundennummer, die Umgebung, in der es weitergehen soll. Die Meldung daneben fragt nur ja oder nein; hier kommt ein Wert zurück.\n\n**Frage und Möglichkeiten dürfen verdrahtet sein.** Was jemanden aufhält, gehört zum Lauf und nicht zum Knoten — und die Liste steht meistens schon in der Antwort davor: die zwölf Kunden aus dem Request, die drei Umgebungen aus dem Environment. Sie abzutippen hiesse, sie doppelt zu führen.\n\n**Eine Möglichkeit hat zwei Seiten:** was dasteht und was herauskommt. „Produktion = https://api.test“ zeigt das Wort und liefert die Adresse. Eine Zeile ohne Gleichheitszeichen ist beides zugleich — das ist der häufigere Fall und darf deshalb der kürzere sein. Deshalb Paare und keine blosse Liste.\n\n**Verdrahtet kommt alles an, was eine Liste sein kann:** ein Objekt (Beschriftung → Wert), eine Liste von Werten, eine Liste von Zweierlisten, eine Liste von Objekten mit `label`, `name`, `key` oder `title`. Vier Schreibweisen, weil vier Knoten sie liefern — dieselbe Regel wie bei den Request-Überschreibungen.\n\n**Stehen Möglichkeiten da, ist es eine Auswahl** — gleich was im Feld „kind“ steht. Ein verdrahteter Eingang, der nichts täte, weil daneben „text“ gewählt ist, wäre eine Falle.\n\n**„geheim“ verdeckt auch danach.** Der Dialog zeigt Punkte statt Zeichen, und die Antwort steht anschliessend maskiert im Ergebnis — wie der Wert eines Secret-Knotens. Ein Dialog, dessen Antwort danach offen auf der Karte stünde, verspräche etwas, das er nicht hält.\n\n**Abbrechen endet den Lauf**, es ist keine leere Antwort. Wer eine Frage stellt, auf die es auch keine Antwort geben darf, hängt eine Bedingung dahinter.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "kind": "start",
+        "x": 60,
+        "y": 48
+      },
+      {
+        "id": "umgebung",
+        "kind": "prompt",
+        "name": "Welche Umgebung?",
+        "comment": "Getippte Möglichkeiten: links steht, was man liest, rechts, was herauskommt.",
+        "data": {
+          "question": "Wohin soll der Lauf gehen?",
+          "form": "auswahl",
+          "choices": "Produktion = https://api.test\nAbnahme = https://uat.api.test\nLokal = http://localhost:8080"
+        },
+        "x": 420,
+        "y": 48
+      },
+      {
+        "id": "kunden",
+        "kind": "json",
+        "name": "Kunden aus der Antwort",
+        "comment": "Steht für das, was ein Request zurückgibt — Beschriftung und Wert in einem Objekt.",
+        "data": {
+          "value": "{\"Ada Lovelace\": 11, \"Grace Hopper\": 12, \"Alan Turing\": 13}"
+        },
+        "x": 60,
+        "y": 264
+      },
+      {
+        "id": "kunde",
+        "kind": "prompt",
+        "name": "Welcher Kunde?",
+        "comment": "Die Möglichkeiten kommen aus dem Schritt davor. Das Feld „kind“ steht auf „text“ und wird überstimmt: wo Möglichkeiten anliegen, ist es eine Auswahl.",
+        "vars": {
+          "choices": "$kunden.body"
+        },
+        "data": {
+          "question": "Für welchen Kunden?"
+        },
+        "x": 420,
+        "y": 264
+      },
+      {
+        "id": "kennwort",
+        "kind": "prompt",
+        "name": "Einmalkennwort",
+        "comment": "„geheim“: Punkte im Dialog, maskiert im Ergebnis — wie der Wert eines Secret-Knotens.",
+        "data": {
+          "question": "Code aus der App:",
+          "form": "geheim"
+        },
+        "x": 420,
+        "y": 468
+      },
+      {
+        "id": "zeile",
+        "kind": "template",
+        "name": "Was dabei herauskam",
+        "vars": {
+          "ziel": "$umgebung.body",
+          "nr": "$kunde.body"
+        },
+        "data": {
+          "text": "Kunde {{nr}} auf {{ziel}}"
+        },
+        "x": 792,
+        "y": 264
+      },
+      {
+        "id": "notiz",
+        "kind": "log",
+        "name": "Log",
+        "vars": {
+          "input": "$zeile.body"
+        },
+        "data": {
+          "label": "Beantwortet"
+        },
+        "flow": true,
+        "x": 792,
+        "y": 48
+      },
+      {
+        "id": "ende",
+        "kind": "end",
+        "name": "Ende",
+        "comment": "Das Kennwort steht hier maskiert — der Lauf selbst rechnet mit dem echten Wert.",
+        "vars": {
+          "ziel": "$umgebung.body",
+          "kunde": "$kunde.body",
+          "kennwort": "$kennwort.body",
+          "zeile": "$zeile.body"
+        },
+        "data": {
+          "label": "Drei Antworten"
+        },
+        "x": 1152,
+        "y": 48
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "umgebung"
+      },
+      {
+        "from": "umgebung",
+        "to": "kunde"
+      },
+      {
+        "from": "kunde",
+        "to": "kennwort"
+      },
+      {
+        "from": "kennwort",
+        "to": "notiz"
+      },
+      {
+        "from": "notiz",
+        "to": "ende"
+      }
+    ]
+  }
+}

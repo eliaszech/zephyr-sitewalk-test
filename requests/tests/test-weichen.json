@@ -1,0 +1,158 @@
+{
+  "type": "runbook",
+  "name": "Test Weichen",
+  "description": "Zwei Weichen, die würfeln. Die Gabelung daneben geht *alle* Wege, diese hier genau einen.\n\n**Die zufällige ist die gewichtete ohne Gewichte** — dann sind alle Wege gleich schwer. Zwei Rechnungen dafür wären zwei Orte, an denen dieselbe Frage anders beantwortet werden kann; im Programm ist es eine.\n\n**Gewichte sind Anteile:** „70, 30“ und „7, 3“ sind dieselbe Verteilung. Fehlt eine Zahl, teilen sich die übrigen, was an hundert fehlt — bei zwei Ausgängen tippt man oft nur die eine Zahl, die man im Kopf hat. Eine Null heisst „nie“, und das ist erlaubt.\n\n**Am Würfel des Laufs, und trotzdem in der Schleife verschieden.** Derselbe Lauf geht denselben Weg — das ist die Zusage. In einer Schleife dreht sich der Würfel bei jedem Vorbeikommen weiter, denn sonst nähme die Weiche bei allen zwanzig Durchgängen denselben Ausgang, und aus siebzig zu dreissig würde hundert zu null. Gezählt wird dafür, wie viele Schritte der Lauf schon getan hat.\n\n**Welchen Weg sie genommen hat, steht an einem Ausgang** („way“) und nicht nur im Log: was ein Knoten ins Ergebnis legt, bekommt einen Anschluss.\n\nDer Lauf hier zählt zwanzig Durchgänge und schreibt je Durchgang eine Zeile. In der Zeitleiste steht danach, wie oft „lesen“ und wie oft „schreiben“ kam — bei siebzig zu dreissig sind das ungefähr vierzehn zu sechs. „Ungefähr“ steht mit Absicht da: zwanzig Würfe sind zwanzig Würfe.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "kind": "start",
+        "x": 60,
+        "y": 48
+      },
+      {
+        "id": "schleife",
+        "kind": "loop",
+        "name": "Zwanzig Durchgänge",
+        "comment": "Die Kante vom Log zurück hierher ist die Schleife.",
+        "data": {
+          "times": "20"
+        },
+        "x": 420,
+        "y": 48
+      },
+      {
+        "id": "last",
+        "kind": "weighted",
+        "name": "Siebzig zu dreissig",
+        "comment": "So sieht die Last eines echten Tages aus: siebzig Prozent lesen, dreissig schreiben.",
+        "data": {
+          "weights": "70, 30"
+        },
+        "x": 780,
+        "y": 216
+      },
+      {
+        "id": "lesen",
+        "kind": "log",
+        "name": "Gelesen",
+        "vars": {
+          "weg": "$last.body"
+        },
+        "data": {
+          "label": "lesen"
+        },
+        "flow": true,
+        "x": 1140,
+        "y": 156
+      },
+      {
+        "id": "schreiben",
+        "kind": "log",
+        "name": "Geschrieben",
+        "vars": {
+          "weg": "$last.body"
+        },
+        "data": {
+          "label": "schreiben"
+        },
+        "flow": true,
+        "x": 1140,
+        "y": 336
+      },
+      {
+        "id": "muenze",
+        "kind": "randombranch",
+        "name": "Kopf oder Zahl",
+        "comment": "Ohne Gewichte: beide Wege gleich schwer. Ein fester Seed macht daraus einen Weg, den derselbe Lauf zweimal gleich geht.",
+        "data": {
+          "seed": ""
+        },
+        "x": 420,
+        "y": 552
+      },
+      {
+        "id": "kopf",
+        "kind": "log",
+        "name": "Kopf",
+        "data": {
+          "label": "kopf"
+        },
+        "flow": true,
+        "x": 780,
+        "y": 492
+      },
+      {
+        "id": "zahl",
+        "kind": "log",
+        "name": "Zahl",
+        "data": {
+          "label": "zahl"
+        },
+        "flow": true,
+        "x": 780,
+        "y": 660
+      },
+      {
+        "id": "ende",
+        "kind": "end",
+        "name": "Ende",
+        "vars": {
+          "letzter_weg": "$last.body",
+          "muenze": "$muenze.body"
+        },
+        "data": {
+          "label": "Gewürfelt"
+        },
+        "x": 1500,
+        "y": 48
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "schleife"
+      },
+      {
+        "from": "schleife.each",
+        "to": "last"
+      },
+      {
+        "from": "last.a",
+        "to": "lesen"
+      },
+      {
+        "from": "last.b",
+        "to": "schreiben"
+      },
+      {
+        "from": "lesen",
+        "to": "schleife"
+      },
+      {
+        "from": "schreiben",
+        "to": "schleife"
+      },
+      {
+        "from": "schleife.done",
+        "to": "muenze"
+      },
+      {
+        "from": "muenze.a",
+        "to": "kopf"
+      },
+      {
+        "from": "muenze.b",
+        "to": "zahl"
+      },
+      {
+        "from": "kopf",
+        "to": "ende"
+      },
+      {
+        "from": "zahl",
+        "to": "ende"
+      }
+    ]
+  }
+}

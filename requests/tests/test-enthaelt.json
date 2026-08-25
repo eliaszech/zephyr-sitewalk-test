@@ -1,0 +1,252 @@
+{
+  "type": "runbook",
+  "name": "Test Enthält",
+  "description": "**Steckt das eine im anderen?** Dieselbe Frage an dreierlei, wie „Anzahl“ und „Ausschnitt“ sie stellen: eine Liste hat Elemente, ein Objekt hat Felder, ein Text hat Zeichen.\n\nGesucht wurde das bisher an drei Orten und nie an einem: in einer Liste mit „Any“ und einer Bedingung, in einem Text mit einem regulären Ausdruck, in einem Objekt mit einem Auslesen und der Frage, ob dabei etwas herauskam. Drei Schreibweisen für eine Frage, und zwei davon liefern nebenbei etwas anderes, als man wissen wollte.\n\n**Drei Ausgänge.** `ok` beantwortet die Frage; `index` sagt, wo der erste Treffer steht — die Stelle in der Liste, der Anfang im Text —, und die reicht man in den Ausschnitt weiter. `count` sagt, wie oft: „steckt es drin“ und „wie oft“ sind dieselbe Suche, und ein zweiter Knoten dafür ginge ein zweites Mal durch dieselben Daten.\n\n**In einem Objekt wird ein Feldname gesucht** und kein Wert — dieselbe Zählweise wie bei „Anzahl“, die die Felder zählt. Eine Stelle gibt es dort nicht: die Reihenfolge der Felder kommt daher, wie die Antwort geschrieben wurde, und nicht daher, was jemand gemeint hat. Wer nach einem *Wert* fragt, hängt „Zerlegen“ davor und durchsucht dessen `values`.\n\n**Gleich ist, was wirklich gleich ist.** Die Zahl `1` ist nicht der Text `\"1\"` — dieselbe Regel wie beim Entdoppeln, und aus demselben Grund: eine Kennung, die einmal als Zahl und einmal als Text zurückkommt, wäre sonst dieselbe. Deshalb wird auch das Feld gelesen wie eine Zeile in einer Liste: `42` ist eine Zahl, `\"42\"` in Anführungszeichen ist der Weg, sie als Text zu meinen.\n\n**Gross und klein sind verschieden.** Wer das nicht will, schickt beide Seiten vorher durch „Kleinbuchstaben“ — zwei Fragen, zwei Knoten, wie beim Anfangsbuchstaben nebenan.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "kind": "start",
+        "x": 60,
+        "y": 48
+      },
+      {
+        "id": "liste",
+        "kind": "json",
+        "name": "Eine Liste",
+        "comment": "Wie sie eine Antwort zurückgäbe — Kennungen als Text.",
+        "data": {
+          "value": "[\"k-1\", \"k-2\", \"k-7\", \"k-2\"]"
+        },
+        "x": 60,
+        "y": 216
+      },
+      {
+        "id": "drin",
+        "kind": "contains",
+        "name": "Ist k-2 dabei?",
+        "comment": "Zweimal in der Liste: „index“ nennt das erste Vorkommen, „count“ zählt beide.",
+        "vars": {
+          "input": "$liste.body"
+        },
+        "data": {
+          "looking_for": "k-2"
+        },
+        "x": 468,
+        "y": 216
+      },
+      {
+        "id": "zahlen",
+        "kind": "json",
+        "name": "Zahlen",
+        "comment": "Zum Gegenbeweis daneben: hier stehen Zahlen und keine Texte.",
+        "data": {
+          "value": "[7, 42, 99]"
+        },
+        "x": 60,
+        "y": 384
+      },
+      {
+        "id": "alsZahl",
+        "kind": "contains",
+        "name": "42 als Zahl",
+        "comment": "Das Feld wird gelesen wie eine Zeile in einer Liste: hier steht eine Zahl, und die Liste enthält sie.",
+        "vars": {
+          "input": "$zahlen.body"
+        },
+        "data": {
+          "looking_for": "42"
+        },
+        "x": 468,
+        "y": 384
+      },
+      {
+        "id": "alsText",
+        "kind": "contains",
+        "name": "42 als Text",
+        "comment": "Dieselbe Liste, dasselbe Zeichen — in Anführungszeichen ist es Text, und ein Text steckt in einer Liste von Zahlen nicht.",
+        "vars": {
+          "input": "$zahlen.body"
+        },
+        "data": {
+          "looking_for": "\"42\""
+        },
+        "x": 468,
+        "y": 528
+      },
+      {
+        "id": "antwort",
+        "kind": "json",
+        "name": "Eine Antwort",
+        "comment": "Mit einem Feld, das man nicht sehen will.",
+        "data": {
+          "value": "{\n  \"id\": \"k-2\",\n  \"error\": \"Kunde gesperrt\"\n}"
+        },
+        "x": 60,
+        "y": 672
+      },
+      {
+        "id": "hatFehler",
+        "kind": "contains",
+        "name": "Hat sie ein „error“?",
+        "comment": "Im Objekt wird der Feldname gesucht, nicht der Wert. „index“ bleibt leer: Felder haben keine Stelle, auf die man sich berufen sollte.",
+        "vars": {
+          "input": "$antwort.body"
+        },
+        "data": {
+          "looking_for": "error"
+        },
+        "x": 468,
+        "y": 672
+      },
+      {
+        "id": "kopf",
+        "kind": "string",
+        "name": "Ein Header",
+        "comment": "Der Fall, für den man sonst ein Muster hinschreibt.",
+        "data": {
+          "value": "application/json; charset=utf-8"
+        },
+        "x": 60,
+        "y": 816
+      },
+      {
+        "id": "istJson",
+        "kind": "contains",
+        "name": "Steht „json“ drin?",
+        "comment": "Ein Stück Text im Text. Die Stelle zählt Codepunkte — man reicht sie in den Ausschnitt weiter.",
+        "vars": {
+          "input": "$kopf.body"
+        },
+        "data": {
+          "looking_for": "json"
+        },
+        "x": 468,
+        "y": 816
+      },
+      {
+        "id": "gross",
+        "kind": "contains",
+        "name": "Und „JSON“?",
+        "comment": "Gross und klein sind verschieden: wer das nicht will, schickt beide Seiten vorher durch „Kleinbuchstaben“.",
+        "vars": {
+          "input": "$kopf.body"
+        },
+        "data": {
+          "looking_for": "JSON"
+        },
+        "x": 468,
+        "y": 960
+      },
+      {
+        "id": "gesucht",
+        "kind": "string",
+        "name": "Aus einer Antwort",
+        "comment": "Verdrahtet schlägt eingetippt — das Gesuchte kommt öfter aus einem Schritt davor als aus dem Feld.",
+        "data": {
+          "value": "k-7"
+        },
+        "x": 60,
+        "y": 1104
+      },
+      {
+        "id": "verdrahtet",
+        "kind": "contains",
+        "name": "Verdrahtet",
+        "comment": "Im Feld steht etwas anderes; es gilt trotzdem der Eingang.",
+        "vars": {
+          "input": "$liste.body",
+          "looking_for": "$gesucht.body"
+        },
+        "data": {
+          "looking_for": "steht-hier-vergeblich"
+        },
+        "x": 468,
+        "y": 1104
+      },
+      {
+        "id": "weiter",
+        "kind": "condition",
+        "name": "Gesperrt?",
+        "comment": "Wozu die Frage da ist: sie verzweigt. Der Ausdruck bleibt leer — dann zählt „input“ selbst, und der ist schon ein Ja oder Nein.",
+        "vars": {
+          "input": "$hatFehler.body.ok"
+        },
+        "x": 852,
+        "y": 48
+      },
+      {
+        "id": "meldung",
+        "kind": "log",
+        "name": "Gesperrt",
+        "vars": {
+          "grund": "$antwort.body.error"
+        },
+        "data": {
+          "label": "Abgelehnt"
+        },
+        "flow": true,
+        "x": 1284,
+        "y": 96
+      },
+      {
+        "id": "weiterso",
+        "kind": "log",
+        "name": "In Ordnung",
+        "vars": {
+          "id": "$antwort.body.id"
+        },
+        "data": {
+          "label": "Angenommen"
+        },
+        "flow": true,
+        "x": 1284,
+        "y": 300
+      },
+      {
+        "id": "ende",
+        "kind": "end",
+        "name": "Ende",
+        "vars": {
+          "liste_ok": "$drin.body.ok",
+          "liste_stelle": "$drin.body.index",
+          "liste_wie_oft": "$drin.body.count",
+          "zahl_ok": "$alsZahl.body.ok",
+          "text_ok": "$alsText.body.ok",
+          "objekt_ok": "$hatFehler.body.ok",
+          "objekt_stelle": "$hatFehler.body.index",
+          "text_stelle": "$istJson.body.index",
+          "gross_ok": "$gross.body.ok",
+          "verdrahtet_ok": "$verdrahtet.body.ok"
+        },
+        "data": {
+          "label": "Liste, Objekt, Text"
+        },
+        "x": 1692,
+        "y": 216
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "weiter"
+      },
+      {
+        "from": "weiter.then",
+        "to": "meldung"
+      },
+      {
+        "from": "weiter.else",
+        "to": "weiterso"
+      },
+      {
+        "from": "meldung",
+        "to": "ende"
+      },
+      {
+        "from": "weiterso",
+        "to": "ende"
+      }
+    ]
+  }
+}

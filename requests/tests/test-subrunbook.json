@@ -1,13 +1,13 @@
 {
   "type": "runbook",
-  "name": "TestUmgebung",
+  "name": "Testumgebung",
   "graph": {
     "nodes": [
       {
         "id": "start",
         "kind": "start",
-        "x": -72,
-        "y": 60
+        "x": -156,
+        "y": 600
       },
       {
         "id": "average",
@@ -78,16 +78,89 @@
         "y": 348
       },
       {
-        "id": "lorem",
-        "kind": "lorem",
+        "id": "test-yappie",
+        "kind": "socketio",
+        "request": "requests/laendlekasse/test-yappie.json",
         "data": {
-          "size": "",
-          "seed": ""
+          "messages": "10"
         },
         "x": 192,
-        "y": 612
+        "y": 600
+      },
+      {
+        "id": "switch",
+        "kind": "switch",
+        "vars": {
+          "input": "$test-yappie.body.event"
+        },
+        "data": {
+          "cases": "input == \"user:presenceSync\"\ninput == \"user:statusChange\""
+        },
+        "flowOuts": [
+          "presence",
+          "statuschange"
+        ],
+        "x": 804,
+        "y": 852
+      },
+      {
+        "id": "fork",
+        "kind": "fork",
+        "x": 192,
+        "y": 804
+      },
+      {
+        "id": "log-2",
+        "kind": "log",
+        "vars": {
+          "input": "$switch.body.value"
+        },
+        "data": {
+          "label": "Presence"
+        },
+        "flow": true,
+        "x": 1224,
+        "y": 780
+      },
+      {
+        "id": "log-2-2",
+        "kind": "log",
+        "vars": {
+          "input": "$switch.body.value"
+        },
+        "data": {
+          "label": "Status Change"
+        },
+        "flow": true,
+        "x": 1224,
+        "y": 948
       }
     ],
-    "edges": []
+    "edges": [
+      {
+        "from": "start",
+        "to": "test-yappie"
+      },
+      {
+        "from": "test-yappie.each",
+        "to": "fork"
+      },
+      {
+        "from": "fork.b",
+        "to": "switch"
+      },
+      {
+        "from": "switch.presence",
+        "to": "log-2"
+      },
+      {
+        "from": "switch.statuschange",
+        "to": "log-2-2"
+      },
+      {
+        "from": "fork.a",
+        "to": "test-yappie"
+      }
+    ]
   }
 }

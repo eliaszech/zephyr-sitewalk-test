@@ -1,0 +1,211 @@
+{
+  "type": "runbook",
+  "name": "Test Datum lesen",
+  "description": "**Das Gegenstück zum Date Format.** Der schreibt einen Zeitpunkt so, wie ein Mensch ihn lesen soll; dieser liest einen aus dem, was ein Mensch geschrieben hat.\n\n**Ohne Muster geht, was von selbst geht:** ein ISO-Text und eine Unix-Zahl. Das kann das Programm ohnehin überall — `Date.parse` und dieselbe lockere Lesart, mit der auch der Zeit-Knoten seinen Eingang nimmt.\n\n**Mit Muster geht alles andere,** und dafür steht er da: `24.08.2026`, `08/24/2026`, `am 24.08.2026 um 14:30`. Das ist es, was in CSV-Dateien, in Berichten und in Antworten älterer Dienste steht — und ohne diesen Knoten baut man es aus einem Muster mit drei Klammern und einer Vorlage dahinter zusammen.\n\n**Derselbe Zeichensatz wie gegenüber:** `YYYY MM DD` für Jahr, Monat, Tag, `HH mm ss` für die Uhrzeit, `hh` mit `A` für die zwölf Stunden, `SSS` für Millisekunden. Was dazwischen steht, gilt wörtlich — `am DD.MM.YYYY` liest sich, wie es dasteht. Zwei Zeichensätze für eine Sache wären zwei, die man verwechselt.\n\n**Was das Muster nicht liest, ist der Anfang:** kein Monat heisst Januar, kein Tag der erste, keine Uhrzeit Mitternacht. Ohne *Jahr* gibt es dagegen nichts zu lesen — welches gemeint wäre, ist eine Erfindung und keine Vorgabe.\n\n**Die Zone entscheidet, welcher Augenblick gemeint ist.** „14:30“ ist in Zürich und in Tokio nicht derselbe, und der Versatz hängt an der Jahreszeit: im Winter ist Zürich eine Stunde voraus, im Sommer zwei. Beide Karten unten stehen auf demselben Text und geben zwei verschiedene Augenblicke.\n\n**„iso“ steht in UTC, „local“ in der Zone, in der gelesen wurde.** Wer `12:00` hinschreibt und im ISO `11:00Z` liest, hat nichts falsch gemacht: Zürich liegt im Winter eine Stunde davor, im Sommer zwei. Bei einem Datum ohne Uhrzeit fällt es noch mehr auf — Mitternacht Ortszeit ist im ISO der Vortag um 23 Uhr. Richtig gerechnet und beim Hinsehen ein Schrecken, und genau dafür steht `local` daneben.\n\n**Ohne Muster gilt nur, was eindeutig ist:** ISO, eine Unix-Zahl, ein Datum mit Monatsnamen. `11.01.1997` gehört nicht dazu — das heisst hier der 11. Januar und in Amerika der 1. November, und wer rät, liegt in jedem zweiten Fall um zehn Monate daneben. Der Knoten sagt es, statt sich zu entscheiden.\n\n**Was gar nicht passt, ist ein Fehler und kein leerer Wert** — dieselbe Regel wie bei „Zu Zahl“. Ein stillschweigend erfundener Zeitpunkt rechnete sich durch den halben Graphen, und man sähe es drei Schritte später an einer Frist, die nie abläuft.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "kind": "start",
+        "x": 60,
+        "y": 48
+      },
+      {
+        "id": "iso",
+        "kind": "string",
+        "name": "Ein ISO-Text",
+        "comment": "So kommt es aus einer Antwort, die sich an die Norm hält.",
+        "data": {
+          "value": "2026-08-24T12:30:00.000Z"
+        },
+        "x": 60,
+        "y": 216
+      },
+      {
+        "id": "ohneMuster",
+        "kind": "parsedate",
+        "name": "Ohne Muster",
+        "comment": "ISO und Unix liest er von selbst — dafür braucht es kein Muster.",
+        "vars": {
+          "text": "$iso.body"
+        },
+        "x": 468,
+        "y": 216
+      },
+      {
+        "id": "deutsch",
+        "kind": "string",
+        "name": "Wie man es schreibt",
+        "comment": "Aus einer CSV, aus einem Bericht, aus einem älteren Dienst.",
+        "data": {
+          "value": "24.08.2026 14:30"
+        },
+        "x": 60,
+        "y": 384
+      },
+      {
+        "id": "mitMuster",
+        "kind": "parsedate",
+        "name": "Mit Muster",
+        "comment": "Derselbe Zeichensatz wie am Date Format gegenüber. Ohne Zone gilt die des Rechners.",
+        "vars": {
+          "text": "$deutsch.body"
+        },
+        "data": {
+          "format": "DD.MM.YYYY HH:mm"
+        },
+        "x": 468,
+        "y": 384
+      },
+      {
+        "id": "inZuerich",
+        "kind": "parsedate",
+        "name": "Als Ortszeit Zürich",
+        "comment": "Derselbe Text, gelesen als Zürcher Wanduhrzeit. „iso“ steht in UTC und liegt damit zwei Stunden davor — „local“ schreibt zurück, was hineinging.",
+        "vars": {
+          "text": "$deutsch.body"
+        },
+        "data": {
+          "zone": "Europe/Zurich",
+          "format": "DD.MM.YYYY HH:mm"
+        },
+        "x": 468,
+        "y": 528
+      },
+      {
+        "id": "inTokio",
+        "kind": "parsedate",
+        "name": "Als Ortszeit Tokio",
+        "comment": "Und derselbe Text in Tokio: ein anderer Augenblick, sieben Stunden früher.",
+        "vars": {
+          "text": "$deutsch.body"
+        },
+        "data": {
+          "zone": "Asia/Tokyo",
+          "format": "DD.MM.YYYY HH:mm"
+        },
+        "x": 468,
+        "y": 672
+      },
+      {
+        "id": "satzweise",
+        "kind": "string",
+        "name": "Mit Text darum",
+        "comment": "Was zwischen den Zeichen steht, gilt wörtlich.",
+        "data": {
+          "value": "am 24.08.2026 um 02:30 PM"
+        },
+        "x": 60,
+        "y": 816
+      },
+      {
+        "id": "ausSatz",
+        "kind": "parsedate",
+        "name": "Aus dem Satz",
+        "comment": "„hh“ mit „A“ sind die zwölf Stunden — 02:30 PM ist 14:30.",
+        "vars": {
+          "text": "$satzweise.body"
+        },
+        "data": {
+          "format": "am DD.MM.YYYY um hh:mm A"
+        },
+        "x": 468,
+        "y": 816
+      },
+      {
+        "id": "nurJahr",
+        "kind": "parsedate",
+        "name": "Nur das Jahr",
+        "comment": "Was das Muster nicht liest, ist der Anfang: Januar, der Erste, Mitternacht.",
+        "data": {
+          "text": "2026",
+          "format": "YYYY"
+        },
+        "x": 468,
+        "y": 960
+      },
+      {
+        "id": "zurueck",
+        "kind": "dateformat",
+        "name": "Und wieder hin",
+        "comment": "Das Gegenstück: derselbe Zeichensatz, die andere Richtung. Hin und zurück ergibt wieder den Text von oben.",
+        "vars": {
+          "date": "$mitMuster.body.iso"
+        },
+        "data": {
+          "format": "DD.MM.YYYY HH:mm"
+        },
+        "x": 876,
+        "y": 384
+      },
+      {
+        "id": "wielange",
+        "kind": "span",
+        "name": "Wie lange noch",
+        "comment": "Wozu man es liest: gerechnet wird mit dem Augenblick und nicht mit dem Text.",
+        "vars": {
+          "from": "$jetzt.body.iso",
+          "to": "$mitMuster.body.iso"
+        },
+        "x": 876,
+        "y": 528
+      },
+      {
+        "id": "jetzt",
+        "kind": "time",
+        "name": "Jetzt",
+        "x": 60,
+        "y": 528
+      },
+      {
+        "id": "notiz",
+        "kind": "log",
+        "name": "Gelesen",
+        "vars": {
+          "iso": "$mitMuster.body.iso",
+          "zurueck": "$zurueck.body"
+        },
+        "data": {
+          "label": "Datum"
+        },
+        "flow": true,
+        "x": 876,
+        "y": 48
+      },
+      {
+        "id": "ende",
+        "kind": "end",
+        "name": "Ende",
+        "vars": {
+          "ohne_muster": "$ohneMuster.body.iso",
+          "mit_muster": "$mitMuster.body.iso",
+          "mit_muster_local": "$mitMuster.body.local",
+          "unix": "$mitMuster.body.unix",
+          "zuerich": "$inZuerich.body.iso",
+          "zuerich_local": "$inZuerich.body.local",
+          "tokio": "$inTokio.body.iso",
+          "tokio_local": "$inTokio.body.local",
+          "aus_satz": "$ausSatz.body.iso",
+          "nur_jahr": "$nurJahr.body.local",
+          "wieder_text": "$zurueck.body",
+          "wie_lange": "$wielange.body.text"
+        },
+        "data": {
+          "label": "Gelesen, gerechnet, wieder geschrieben"
+        },
+        "x": 1284,
+        "y": 216
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "notiz"
+      },
+      {
+        "from": "notiz",
+        "to": "ende"
+      }
+    ]
+  }
+}

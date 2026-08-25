@@ -1,0 +1,9 @@
+{
+  "type": "socketio",
+  "name": "Test Yappie",
+  "url": "https://yappie.gg",
+  "emits": [],
+  "auth": {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI3NDE3ZmFiYS0wNTI0LTRhMTAtYjgxOS0yNjQ5ZDA4YjE0MmUiLCJqdGkiOiIyZjA3ZjZlZi02OTgwLTQ0OTEtYjFmMC01M2RlZjJkYjVkZGQiLCJpYXQiOjE3ODczMjM1MzMsImV4cCI6MTc4NzkyODMzM30.HQGeYxF-uUgyPYfna629wmqQ6VAk8wq_wdTx6voH9SQ"
+  }
+}

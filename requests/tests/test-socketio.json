@@ -1,0 +1,130 @@
+{
+  "type": "runbook",
+  "name": "Test Socket.IO",
+  "description": "**Die Verbindung ist die Schleife.**\n\nEin Runbook läuft nicht dauernd — es fängt an und hört auf. Eine offene Verbindung passt trotzdem hinein, und zwar in derselben Bauart wie „Für jedes“: jede ankommende Nachricht kommt über `each` heraus, die Kante vom letzten Schritt des Körpers zurück auf den Knoten holt die nächste. Der Unterschied zu einer Schleife über eine Liste ist nur, *woher* die Elemente kommen — dort aus einer Liste, die beim ersten Ankommen feststeht, hier aus einer Leitung, die offen bleibt.\n\nDamit braucht es keinen zweiten Läufer. Ein Lauscher, der den Lauf überdauert und je Ereignis einen Lauf startete, wäre etwas anderes: ein Tab hält den Zustand *eines* Laufs, und der Verlauf bekäme einen Eintrag je Nachricht.\n\n**Verbunden wird beim ersten Ankommen** und nur dann — bei jedem Durchgang neu hiesse, dass der Dienst bei jeder Nachricht einen neuen Handshake sieht. Geschlossen wird am `done`, und auch dann, wenn der Lauf abgebrochen wird oder die Schrittgrenze reisst.\n\n**Was ankommt, während der Körper läuft, wartet.** Der Läufer geht einen Schritt nach dem anderen; ohne die Schlange wären alle Nachrichten weg, die eintrafen, während der Zweig hinter `each` noch lief.\n\n**Gesammelt wird hier so wenig wie in jeder anderen Schleife.** Am Knoten liegt an, was *diese* Ankunft brachte: `event`, `data` und die Stelle. Wer alles zusammen will, hängt einen Sammler in den Körper — das ist dessen Aufgabe, und zwei Orte für dieselbe Frage wären einer zu viel.\n\n**Er hört nur zu.** Senden wäre die andere Hälfte eines Gesprächs und hat an einem Knoten, der eine Schleife *ist*, keinen Platz: er kommt je Nachricht einmal vorbei, und was dann hinausginge, hinge davon ab, wie oft die Gegenstelle etwas geschickt hat. Wer etwas schicken will, schickt es aus dem Körper — dort ist es ein Schritt wie jeder andere.\n\n**Ohne Angabe hört er zu, solange etwas kommt.** `messages` und `timeout` dürfen beide leer bleiben; dann endet der Lauf, wenn die Gegenstelle auflegt oder jemand ihn anhält. Eine Vorgabe von zehn Sekunden stand hier einen Abend lang, und ein Lauscher, der nach zehn Sekunden Stille aufhört, ist keiner.\n\nWer eine Grenze setzt, bekommt sie über `done` — die Anzahl wie die Frist, denn beides ist eine Antwort und kein Fehler: dieselbe Regel wie beim Ping, gefragt war, ob noch etwas kommt. Nur was den Aufbau betrifft — die Adresse, der Handshake, ein Abriss — geht über `error`.\n\n**Die Adresse steht in der Datei.** Namensraum, Handshake-Daten und Header kommen von dort und werden mit den Variablen des Environments aufgelöst; gewählt wird die Datei beim Hinzufügen, wie beim Request und beim Aufruf. Als Eingänge hat der Knoten sie nicht: was die Datei mitbringt, gehört ihr.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "kind": "start",
+        "x": 60,
+        "y": 48
+      },
+      {
+        "id": "hoeren",
+        "kind": "socketio",
+        "name": "Zuhören",
+        "request": "requests/laendlekasse/test-yappie.json",
+        "comment": "Verbindet beim ersten Ankommen und gibt danach je Ankunft eine Nachricht heraus. Beide Grenzen sind leer: er hört zu, bis die Gegenstelle auflegt oder jemand den Lauf anhält.",
+        "data": {},
+        "x": 468,
+        "y": 48
+      },
+      {
+        "id": "notiz",
+        "kind": "log",
+        "name": "Was kam",
+        "comment": "Der Körper der Schleife: läuft je Nachricht einmal.",
+        "vars": {
+          "ereignis": "$hoeren.body.event",
+          "inhalt": "$hoeren.body.data",
+          "stelle": "$hoeren.body.index"
+        },
+        "data": {
+          "label": "Nachricht"
+        },
+        "flow": true,
+        "x": 876,
+        "y": 48
+      },
+      {
+        "id": "sammeln",
+        "kind": "collect",
+        "name": "Alles einsammeln",
+        "comment": "Wer alles zusammen will, hängt einen Sammler in den Körper — genau wie in jeder anderen Schleife. Ein Lauf, eine Liste.",
+        "vars": {
+          "input": "$hoeren.body.data"
+        },
+        "flow": true,
+        "x": 1284,
+        "y": 48
+      },
+      {
+        "id": "fertig",
+        "kind": "log",
+        "name": "Verbindung zu",
+        "comment": "Hier geht es weiter, wenn die Gegenstelle auflegt — oder wenn eine gesetzte Grenze greift.",
+        "vars": {
+          "gesammelt": "$sammeln.body.items"
+        },
+        "data": {
+          "label": "Fertig"
+        },
+        "flow": true,
+        "x": 876,
+        "y": 264
+      },
+      {
+        "id": "schiefgegangen",
+        "kind": "log",
+        "name": "Kam nicht zustande",
+        "comment": "Nur der Aufbau: Adresse, Handshake, Abriss. Ein Ausbleiben von Nachrichten ist kein Fehler.",
+        "data": {
+          "label": "Fehler"
+        },
+        "flow": true,
+        "x": 876,
+        "y": 408
+      },
+      {
+        "id": "ende",
+        "kind": "end",
+        "name": "Ende",
+        "vars": {
+          "gesammelt": "$sammeln.body.items",
+          "wie_viele": "$sammeln.body.count",
+          "letztes_ereignis": "$hoeren.body.event"
+        },
+        "data": {
+          "label": "Was über die Leitung kam"
+        },
+        "x": 1284,
+        "y": 264
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "hoeren"
+      },
+      {
+        "from": "hoeren.each",
+        "to": "notiz"
+      },
+      {
+        "from": "notiz",
+        "to": "sammeln"
+      },
+      {
+        "from": "sammeln",
+        "to": "hoeren"
+      },
+      {
+        "from": "hoeren.done",
+        "to": "fertig"
+      },
+      {
+        "from": "hoeren.error",
+        "to": "schiefgegangen"
+      },
+      {
+        "from": "fertig",
+        "to": "ende"
+      },
+      {
+        "from": "schiefgegangen",
+        "to": "ende"
+      }
+    ]
+  }
+}

@@ -1,0 +1,197 @@
+{
+  "type": "runbook",
+  "name": "Test Dateien",
+  "description": "Die Dateien, auf die ein Muster passt — der Anfang einer Schleife über Testdaten: für jede einmal lesen und einmal schicken. Aufgezählt wird hier, gelesen nebenan.\n\n**Im Ablauf und keine Formel**, aus demselben Grund wie beim Lesen daneben: den Ordner anzusehen ist Arbeit auf der Platte, und eine Formel wird gerechnet, sooft jemand hinsieht.\n\n**Wo gesucht wird, steht neben dem, was gesucht wird.** Der Ordner kommt aus dem Knopf daneben — leer heisst: der ganze Workspace, und das Muster gilt dann von der Wurzel an. Ein Ordner ausserhalb des Workspace geht auch; dann kommen die Treffer als absolute Pfade zurück, und gelesen werden sie ebenso. Wem das zu weit geht, schaltet es in den Einstellungen ab.\n\n**„recursive“ sagt dasselbe wie zwei Sterne, ohne sie zu tippen** — und daneben steht, wie viele Ebenen höchstens. Die Grenze bindet den *Lauf*, das Muster den *Treffer*: beides braucht es, denn ein Muster mit zwei Sternen passt auf jede Tiefe, und ein Ordner mit zehntausend Unterordnern will trotzdem nicht ganz gelesen werden. Leer heisst: so tief es geht.\n\n**Ein Stern bleibt in seinem Namen, zwei gehen über Ordner hinweg.** `daten/*.json` findet nichts in `daten/tief/`, `daten/**/*.json` schon; `?` steht für genau ein Zeichen. Mehr gibt es nicht — keine Klammern, keine Zeichenklassen. Wer die braucht, filtert dahinter, und das kann der Graph schon.\n\n**Gross und klein sind gleich.** Auf der Platte, auf der dieser Workspace meistens liegt, sind sie es auch — und ein Runbook, das je nach Rechner andere Dateien findet, wäre schlimmer als eines, das eine zu viel findet.\n\n**Kein Treffer ist kein Fehler**, sondern das Ergebnis: gefragt war, welche Dateien es gibt, und die Antwort darf „keine“ lauten. Der dritte Strang zeigt das — er geht über eine leere Liste und damit gleich auf „done“.\n\n**Versteckte Dateien bleiben aussen vor**, dieselbe Regel wie im Baum und beim Beobachter: `.git` schreibt bei jedem Befehl Dutzende, `.zephyr` bei jedem Request.\n\nSortiert wird immer, denn eine Schleife über eine Liste muss reproduzierbar sein — die Reihenfolge des Dateisystems ist es nicht.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "kind": "start",
+        "x": 60,
+        "y": 48
+      },
+      {
+        "id": "dateien",
+        "kind": "files",
+        "name": "Die Testdatensätze",
+        "comment": "Der Ordner steht im Feld daneben — leer hiesse: der ganze Workspace. Drei Dateien mit einem Kunden darin; die Notiz und die kunden.json passen nicht auf das Muster.",
+        "data": {
+          "path": "C:/Users/elias/Documents/ZephyrProjects",
+          "pattern": "*.json",
+          "recursive": "true"
+        },
+        "x": 420,
+        "y": 48
+      },
+      {
+        "id": "jede",
+        "kind": "foreach",
+        "name": "Für jede Datei",
+        "comment": "Die Kante vom Log zurück hierher ist die Schleife. An „each“ steht der Pfad, an „index“ seine Stelle.",
+        "vars": {
+          "list": "$dateien.body.paths"
+        },
+        "x": 792,
+        "y": 48
+      },
+      {
+        "id": "lesen",
+        "kind": "readfile",
+        "name": "Diese eine lesen",
+        "comment": "Der Pfad kommt aus dem Durchgang — verdrahtet schlägt eingetippt.",
+        "vars": {
+          "file": "$jede.body.each"
+        },
+        "data": {
+          "format": "auto"
+        },
+        "x": 792,
+        "y": 300
+      },
+      {
+        "id": "zeile",
+        "kind": "template",
+        "name": "Eine Zeile daraus",
+        "vars": {
+          "stelle": "$jede.body.index",
+          "kunde": "$lesen.body.value.kunde",
+          "betrag": "$lesen.body.value.betrag",
+          "datei": "$lesen.body.path"
+        },
+        "data": {
+          "text": "[{{stelle}}] {{kunde}} · {{betrag}} · {{datei}}"
+        },
+        "x": 1152,
+        "y": 372
+      },
+      {
+        "id": "notiz",
+        "kind": "log",
+        "name": "Je Datei eine Zeile",
+        "comment": "Im Ablauf: er schreibt bei jedem Vorbeikommen. Von hier führt die Rückkante auf „Für jede Datei“.",
+        "vars": {
+          "input": "$zeile.body"
+        },
+        "data": {
+          "label": "Datensatz"
+        },
+        "flow": true,
+        "x": 1152,
+        "y": 132
+      },
+      {
+        "id": "alle",
+        "kind": "files",
+        "name": "Alles im Ordner",
+        "comment": "Ein Stern ohne Endung nimmt auch die Notiz mit — aber nichts aus einem Unterordner.",
+        "data": {
+          "path": "daten",
+          "pattern": "*"
+        },
+        "x": 420,
+        "y": 348
+      },
+      {
+        "id": "leer",
+        "kind": "files",
+        "name": "Ein Muster ins Leere",
+        "comment": "Kein Treffer ist kein Fehler: die Frage war, welche Dateien es gibt.",
+        "data": {
+          "path": "daten",
+          "pattern": "*.csv"
+        },
+        "x": 420,
+        "y": 636
+      },
+      {
+        "id": "keine",
+        "kind": "foreach",
+        "name": "Für jede von keiner",
+        "comment": "Geht gleich auf „done“ — kein Durchgang ist kein Fehler.",
+        "vars": {
+          "list": "$leer.body.paths"
+        },
+        "x": 792,
+        "y": 636
+      },
+      {
+        "id": "nie",
+        "kind": "log",
+        "name": "Nie erreicht",
+        "comment": "Der Körper der leeren Schleife: er ist da, er wird nur nie angelaufen. Ohne ihn beanstandet der Graph zu Recht eine Schleife, die nichts wiederholt.",
+        "vars": {
+          "input": "$keine.body.each"
+        },
+        "data": {
+          "label": "Leer"
+        },
+        "flow": true,
+        "x": 1152,
+        "y": 636
+      },
+      {
+        "id": "ende",
+        "kind": "end",
+        "name": "Ende",
+        "vars": {
+          "datensaetze": "$dateien.body.count",
+          "pfade": "$dateien.body.paths",
+          "im_ordner": "$alle.body.count",
+          "keine": "$leer.body.count",
+          "zuletzt": "$zeile.body"
+        },
+        "data": {
+          "label": "Drei Datensätze"
+        },
+        "x": 1572,
+        "y": 48
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "dateien"
+      },
+      {
+        "from": "dateien",
+        "to": "jede"
+      },
+      {
+        "from": "jede.each",
+        "to": "lesen"
+      },
+      {
+        "from": "lesen",
+        "to": "notiz"
+      },
+      {
+        "from": "notiz",
+        "to": "jede"
+      },
+      {
+        "from": "jede.done",
+        "to": "alle"
+      },
+      {
+        "from": "alle",
+        "to": "leer"
+      },
+      {
+        "from": "leer",
+        "to": "keine"
+      },
+      {
+        "from": "keine.each",
+        "to": "nie"
+      },
+      {
+        "from": "nie",
+        "to": "keine"
+      },
+      {
+        "from": "keine.done",
+        "to": "ende"
+      }
+    ]
+  }
+}

@@ -1,0 +1,285 @@
+{
+  "type": "runbook",
+  "name": "Test Stelle, Bits und Basen",
+  "description": "**Zwei Griffe, die jede Sprache hat und die hier fehlten.**\n\n**„Element At“** gibt das Element an einer Stelle — einen *Wert* und keine Liste von einem. Der Ausschnitt daneben gibt eine Liste zurück, und danach steht ein Auslesen mit `.0` dahinter: zwei Karten für einen Griff, den jede Sprache mit eckigen Klammern schreibt.\n\nAb null gezählt, negativ von hinten: `-1` ist das letzte. Es greift auch in einen Text, und zwar über Zeichen — ein Emoji ist ein Element und keine zwei Hälften.\n\n**Eine Stelle, die es nicht gibt, ist kein Fehler,** sondern eine Auskunft: `found` sagt es. Ohne diesen zweiten Ausgang sähe ein Element, das fehlt, aus wie eines, das `null` ist — und das sind zwei verschiedene Antworten.\n\n**„Bitwise“** rechnet auf den Bits einer ganzen Zahl. Berechtigungen kommen als Zahl zurück, in der jedes Bit ein Recht ist — „darf lesen“ ist 4, „darf schreiben“ 2. Die Rechnung daneben kennt die vier Grundarten; „ist Bit drei gesetzt“ beantwortet man damit nur über Division und Rest, und das liest niemand als das, was es ist.\n\n**Gerechnet wird über beliebig viele Bits** und nicht über die zweiunddreissig, die die Sprache selbst kann. Dort wäre `1 << 31` eine *negative* Zahl, und alles über vier Milliarden fiele still hinten weg — genau solche Zahlen kommen aber vor: die Berechtigungen von Discord sind vierundsechzig Bit breit und reisen als Text, weil sie sonst nicht durch ein JSON passen.\n\nDeshalb steht neben `value` auch `text`. Über zweiundfünfzig Bit trägt eine Fliesskommazahl die Zahl nicht mehr genau; `value` ist dann leer, und `text` stimmt. Eine gerundete Zahl auszugeben hiesse, eine Berechtigung zu behaupten, die niemand vergeben hat.\n\n**„nicht“ kippt alle Bits, unbegrenzt:** aus 5 wird −6, wie in jeder Sprache mit Zweierkomplement. Wer eine Breite meint, hängt ein „und“ mit der Maske dahinter — die Breite gehört zur Frage und nicht zur Rechnung.\n\n**„Number Base“** schreibt dieselbe Zahl in einer anderen Basis: 255 als `ff`, `1010` als 10, zwei bis sechsunddreissig. Der Hex-Knoten in den Daten wandelt *Bytes* um — hier geht es um eine einzelne Zahl und ihre Schreibweise: Farbwerte, Berechtigungsmasken, Kennungen in Base36.\n\nAuch hier `value` als Text und `number` daneben: eine Kennung in Base36 ist regelmässig länger als zweiundfünfzig Bit, und die geläufige Rechnung gäbe dort eine gerundete Zahl zurück, die richtig aussieht.\n\n**„Byte Length“** sagt, wie viele *Bytes* ein Text belegt — und wie viele Zeichen es sind. Beide Zahlen nebeneinander, weil erst der Unterschied die Auskunft ist: stehen dort dieselben, ist der Text reines ASCII und die Frage erübrigt sich. Ein Umlaut ist zwei Bytes, ein Emoji vier, und eine Prüfung über die Zeichenzahl geht so lange gut, bis jemand einen Namen mit Akzent einträgt.\n\nGezählt wird über Codepunkte — ein Emoji ist ein Zeichen und keine zwei. „Anzahl“ daneben zählt die Einheiten, in denen JavaScript seine Texte hält, und kommt bei einem Emoji auf zwei; der Unterschied ist gewollt, denn hier wird gefragt, was in ein Feld passt, und dort, wie lang etwas ist.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "kind": "start",
+        "x": 60,
+        "y": 48
+      },
+      {
+        "id": "liste",
+        "kind": "json",
+        "name": "Eine Antwort",
+        "comment": "Wie sie zurückkommt — nach Neuigkeit sortiert.",
+        "data": {
+          "value": "[\n  { \"id\": \"k-9\", \"name\": \"Meier\" },\n  { \"id\": \"k-7\", \"name\": \"Huber\" },\n  { \"id\": \"k-2\", \"name\": \"Frei\" }\n]"
+        },
+        "x": 60,
+        "y": 216
+      },
+      {
+        "id": "erstes",
+        "kind": "at",
+        "name": "Der oberste",
+        "comment": "Ohne Angabe das erste — dieselbe Vorgabe wie am „from“ des Ausschnitts.",
+        "vars": {
+          "input": "$liste.body"
+        },
+        "x": 468,
+        "y": 216
+      },
+      {
+        "id": "letztes",
+        "kind": "at",
+        "name": "Der unterste",
+        "comment": "Negativ zählt von hinten: -1 ist das letzte.",
+        "vars": {
+          "input": "$liste.body"
+        },
+        "data": {
+          "index": "-1"
+        },
+        "x": 468,
+        "y": 360
+      },
+      {
+        "id": "daneben",
+        "kind": "at",
+        "name": "Eine Stelle zu weit",
+        "comment": "Kein Fehler, sondern eine Auskunft: „found“ sagt nein, „value“ bleibt leer.",
+        "vars": {
+          "input": "$liste.body"
+        },
+        "data": {
+          "index": "9"
+        },
+        "x": 468,
+        "y": 504
+      },
+      {
+        "id": "wort",
+        "kind": "string",
+        "name": "Ein Text",
+        "data": {
+          "value": "a🙂b"
+        },
+        "x": 60,
+        "y": 648
+      },
+      {
+        "id": "zeichen",
+        "kind": "at",
+        "name": "Das zweite Zeichen",
+        "comment": "Über Codepunkte: ein Emoji ist ein Element und keine zwei Hälften.",
+        "vars": {
+          "input": "$wort.body"
+        },
+        "data": {
+          "index": "1"
+        },
+        "x": 468,
+        "y": 648
+      },
+      {
+        "id": "rechte",
+        "kind": "number",
+        "name": "Rechte einer Rolle",
+        "comment": "0b1011 — lesen, schreiben und noch eines. Als Zahl: 11.",
+        "data": {
+          "value": "11"
+        },
+        "x": 60,
+        "y": 816
+      },
+      {
+        "id": "darfLesen",
+        "kind": "bitwise",
+        "name": "Darf lesen?",
+        "comment": "Bit 4 abfragen: kommt 4 heraus, ist es gesetzt. Eine Bedingung dahinter macht daraus ein Ja.",
+        "vars": {
+          "a": "$rechte.body"
+        },
+        "data": {
+          "b": "4",
+          "op": "und"
+        },
+        "x": 468,
+        "y": 816
+      },
+      {
+        "id": "darfSchreiben",
+        "kind": "bitwise",
+        "name": "Darf schreiben?",
+        "comment": "Dasselbe mit Bit 2 — und hier ist es gesetzt.",
+        "vars": {
+          "a": "$rechte.body"
+        },
+        "data": {
+          "b": "2",
+          "op": "und"
+        },
+        "x": 468,
+        "y": 960
+      },
+      {
+        "id": "dazu",
+        "kind": "bitwise",
+        "name": "Ein Recht dazu",
+        "comment": "Mit „oder“ setzt man ein Bit — hier Bit 4, das vorher fehlte.",
+        "vars": {
+          "a": "$rechte.body"
+        },
+        "data": {
+          "b": "0x04",
+          "op": "oder"
+        },
+        "x": 876,
+        "y": 804
+      },
+      {
+        "id": "gross",
+        "kind": "bitwise",
+        "name": "Vierundsechzig Bit",
+        "comment": "Was die Bit-Operatoren der Sprache nicht können: „value“ bleibt leer, weil eine Fliesskommazahl das nicht mehr trägt — „text“ stimmt.",
+        "data": {
+          "a": "1",
+          "b": "63",
+          "op": "links schieben"
+        },
+        "x": 468,
+        "y": 1104
+      },
+      {
+        "id": "gekippt",
+        "kind": "bitwise",
+        "name": "Alle Bits gekippt",
+        "comment": "Unbegrenzt: aus 5 wird −6. Wer eine Breite meint, hängt ein „und“ mit der Maske dahinter.",
+        "data": {
+          "a": "5",
+          "op": "nicht"
+        },
+        "x": 468,
+        "y": 1248
+      },
+      {
+        "id": "notiz",
+        "kind": "log",
+        "name": "Log",
+        "vars": {
+          "oberster": "$erstes.body.value",
+          "schreiben": "$darfSchreiben.body.number"
+        },
+        "data": {
+          "label": "Stelle und Bits"
+        },
+        "flow": true,
+        "x": 876,
+        "y": 48
+      },
+      {
+        "id": "alsHex",
+        "kind": "basen",
+        "name": "Die Rechte als Hex",
+        "comment": "Dieselbe Zahl, andere Schreibweise — so steht eine Maske in einer Dokumentation.",
+        "vars": {
+          "value": "$rechte.body"
+        },
+        "data": {
+          "to": "16"
+        },
+        "x": 876,
+        "y": 960
+      },
+      {
+        "id": "ausBase36",
+        "kind": "basen",
+        "name": "Eine Kennung in Base36",
+        "comment": "Länger als zweiundfünfzig Bit: „value“ stimmt, „number“ bleibt leer statt zu runden.",
+        "data": {
+          "value": "zzzzzzzzzzzz",
+          "from": "36"
+        },
+        "x": 1044,
+        "y": 1152
+      },
+      {
+        "id": "name",
+        "kind": "string",
+        "name": "Ein Name mit Umlaut",
+        "comment": "Sechs Zeichen — und sieben Bytes, sobald ein Umlaut dabei ist.",
+        "data": {
+          "value": "grüezi"
+        },
+        "x": 60,
+        "y": 1392
+      },
+      {
+        "id": "passtRein",
+        "kind": "bytelength",
+        "name": "Passt das ins Feld?",
+        "comment": "Ein Dienst begrenzt auf Bytes, nicht auf Zeichen. Erst der Unterschied ist die Auskunft.",
+        "vars": {
+          "input": "$name.body"
+        },
+        "x": 468,
+        "y": 1392
+      },
+      {
+        "id": "mitEmoji",
+        "kind": "bytelength",
+        "name": "Und mit einem Emoji",
+        "comment": "Vier Bytes für ein Zeichen — gezählt über Codepunkte, nicht über die Einheiten der Sprache.",
+        "data": {
+          "input": "hallo 🙂"
+        },
+        "x": 468,
+        "y": 1536
+      },
+      {
+        "id": "ende",
+        "kind": "end",
+        "name": "Ende",
+        "vars": {
+          "oberster": "$erstes.body.value",
+          "unterster": "$letztes.body.value",
+          "daneben_gefunden": "$daneben.body.found",
+          "daneben_wert": "$daneben.body.value",
+          "zeichen": "$zeichen.body.value",
+          "darf_lesen": "$darfLesen.body.number",
+          "darf_schreiben": "$darfSchreiben.body.number",
+          "mit_lesen": "$dazu.body.number",
+          "mit_lesen_bits": "$dazu.body.bits",
+          "gross_zahl": "$gross.body.number",
+          "gross_text": "$gross.body.text",
+          "gekippt": "$gekippt.body.number",
+          "rechte_hex": "$alsHex.body.text",
+          "base36_text": "$ausBase36.body.text",
+          "base36_zahl": "$ausBase36.body.number",
+          "name_bytes": "$passtRein.body.value",
+          "name_zeichen": "$passtRein.body.chars",
+          "emoji_bytes": "$mitEmoji.body.value",
+          "emoji_zeichen": "$mitEmoji.body.chars"
+        },
+        "data": {
+          "label": "Eine Stelle, ein paar Bits, zwei Basen und die Bytes"
+        },
+        "x": 1284,
+        "y": 216
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "notiz"
+      },
+      {
+        "from": "notiz",
+        "to": "ende"
+      }
+    ]
+  }
+}

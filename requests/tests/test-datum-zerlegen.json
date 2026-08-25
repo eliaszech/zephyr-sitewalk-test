@@ -1,0 +1,223 @@
+{
+  "type": "runbook",
+  "name": "Test Datum zerlegen",
+  "description": "**Zwei Fragen an denselben Zeitpunkt**, und beide beantwortet das Date Format nicht.\n\n**„Date Parts“ gibt Zahlen.** Das Date Format schreibt „08“, und mit „08“ lässt sich nicht rechnen — ein Vergleich gegen 8 geht damit anders aus, als man denkt. Hier kommen acht Zahlen heraus, und damit beantwortet eine Bedingung dahinter „nur an Werktagen“, „nur zur vollen Stunde“, „nur im laufenden Jahr“.\n\nDer Monat zählt ab eins, wie ein Mensch ihn zählt und nicht wie `Date` ihn zählt. Der Wochentag zählt ab Montag: 1 ist Montag, 7 ist Sonntag — die Zählung der Norm und die des Kalenders in diesem Programm.\n\n**Die Zone entscheidet, wie der Zeitpunkt heisst.** Derselbe Augenblick ist in Zürich und in Tokio ein anderer Tag, und damit ein anderer Wochentag und manchmal ein anderes Jahr. Die beiden Karten in der Mitte stehen auf demselben Augenblick und geben zwei verschiedene Tage. Die Millisekunden hängen nicht daran: jeder Zonenversatz der Welt geht auf ganze Minuten auf.\n\n**„Relative Time“ gibt Worte.** „vor 3 Minuten“, „in 2 Tagen“, „gestern“, „jetzt“ — für eine Meldung, einen Bericht, eine Zeile im Log. Ein Zeitstempel beantwortet die Frage „ist das frisch?“ erst, nachdem der Leser subtrahiert hat.\n\nVerglichen wird mit dem Augenblick des Laufs — oder mit dem, was an „from“ anliegt. Die Richtung steht als eigener Wert daneben (`past`): im Text steht sie zwar auch, aber daraus lässt sich nicht vergleichen, und „ist das abgelaufen?“ ist eine Frage an den Ablauf und keine an den Leser.\n\nGerundet wird zur näheren Angabe — neunzig Sekunden sind „vor 2 Minuten“ —, und ein Monat ist ein Mittelwert. Wer rechnen will, nimmt die Zeitspanne daneben: die zählt Millisekunden und rundet nichts.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "kind": "start",
+        "x": 60,
+        "y": 48
+      },
+      {
+        "id": "wann",
+        "kind": "string",
+        "name": "Ein Zeitpunkt",
+        "comment": "Wie er aus einer Antwort käme — ein Montagmittag, mit Millisekunden.",
+        "data": {
+          "value": "2026-08-24T23:34:56.078Z"
+        },
+        "x": 60,
+        "y": 216
+      },
+      {
+        "id": "teile",
+        "kind": "dateparts",
+        "name": "In UTC",
+        "comment": "Acht Zahlen: Jahr, Monat, Tag, Stunde, Minute, Sekunde, Millisekunden, Wochentag.",
+        "vars": {
+          "date": "$wann.body"
+        },
+        "data": {
+          "zone": "UTC"
+        },
+        "x": 468,
+        "y": 156
+      },
+      {
+        "id": "tokio",
+        "kind": "dateparts",
+        "name": "In Tokio",
+        "comment": "Derselbe Augenblick, ein anderer Tag — und damit ein anderer Wochentag. Die Millisekunden bleiben gleich.",
+        "vars": {
+          "date": "$wann.body"
+        },
+        "data": {
+          "zone": "Asia/Tokyo"
+        },
+        "x": 468,
+        "y": 456
+      },
+      {
+        "id": "werktag",
+        "kind": "condition",
+        "name": "Werktag?",
+        "comment": "Wozu die Zahlen da sind: 1 bis 5 ist Montag bis Freitag. Mit einem Text ginge das nicht.",
+        "vars": {
+          "tag": "$teile.body.weekday"
+        },
+        "data": {
+          "expr": "tag <= 5"
+        },
+        "x": 876,
+        "y": 48
+      },
+      {
+        "id": "ja",
+        "kind": "log",
+        "name": "Werktag",
+        "vars": {
+          "tag": "$teile.body.weekday"
+        },
+        "data": {
+          "label": "werktag"
+        },
+        "flow": true,
+        "x": 1284,
+        "y": 48
+      },
+      {
+        "id": "nein",
+        "kind": "log",
+        "name": "Wochenende",
+        "vars": {
+          "tag": "$teile.body.weekday"
+        },
+        "data": {
+          "label": "wochenende"
+        },
+        "flow": true,
+        "x": 1284,
+        "y": 156
+      },
+      {
+        "id": "frueher",
+        "kind": "time",
+        "name": "Vor drei Minuten",
+        "comment": "Der Zeit-Knoten mit einem Versatz — so kommt ein Zeitpunkt zustande, den es beim Lauf wirklich gab.",
+        "data": {
+          "offset": "-3m"
+        },
+        "x": 60,
+        "y": 696
+      },
+      {
+        "id": "seither",
+        "kind": "relativetime",
+        "name": "Wie lange her",
+        "comment": "Ohne „from“ gilt der Augenblick des Laufs — alle Zeit-Knoten eines Laufs sehen denselben.",
+        "vars": {
+          "date": "$frueher.body.iso"
+        },
+        "x": 468,
+        "y": 732
+      },
+      {
+        "id": "spaeter",
+        "kind": "time",
+        "name": "In zwei Tagen",
+        "data": {
+          "offset": "+2d"
+        },
+        "x": 60,
+        "y": 840
+      },
+      {
+        "id": "noch",
+        "kind": "relativetime",
+        "name": "Wie lange hin",
+        "comment": "Dieselbe Karte, die andere Richtung: „past“ sagt nein.",
+        "vars": {
+          "date": "$spaeter.body.iso"
+        },
+        "x": 468,
+        "y": 864
+      },
+      {
+        "id": "bezug",
+        "kind": "string",
+        "name": "Ein fester Bezug",
+        "comment": "Mittag desselben Tages — damit die Antwort daneben stehen bleibt.",
+        "data": {
+          "value": "2026-08-24T12:00:00Z"
+        },
+        "x": 60,
+        "y": 984
+      },
+      {
+        "id": "gegen",
+        "kind": "relativetime",
+        "name": "Gegen einen festen Bezug",
+        "comment": "Mit „from“ hängt es nicht an der Wanduhr: zwei feste Zeitpunkte, gegeneinander gelesen — so steht im Bericht dasselbe wie beim nächsten Lauf.",
+        "vars": {
+          "date": "$wann.body",
+          "from": "$bezug.body"
+        },
+        "x": 468,
+        "y": 1008
+      },
+      {
+        "id": "satz",
+        "kind": "template",
+        "name": "Für die Meldung",
+        "comment": "Wozu man es liest: „zuletzt gesehen vor 3 Minuten“ steht in jedem Bericht.",
+        "vars": {
+          "wann": "$seither.body.text"
+        },
+        "data": {
+          "text": "Zuletzt gesehen {{wann}}."
+        },
+        "x": 876,
+        "y": 696
+      },
+      {
+        "id": "ende",
+        "kind": "end",
+        "name": "Ende",
+        "vars": {
+          "jahr": "$teile.body.year",
+          "monat": "$teile.body.month",
+          "tag": "$teile.body.day",
+          "stunde": "$teile.body.hour",
+          "sekunde": "$teile.body.second",
+          "ms": "$teile.body.ms",
+          "wochentag": "$teile.body.weekday",
+          "tokio_tag": "$tokio.body.day",
+          "tokio_wochentag": "$tokio.body.weekday",
+          "her": "$seither.body.text",
+          "hin": "$noch.body.text",
+          "vorbei": "$seither.body.past",
+          "satz": "$satz.body"
+        },
+        "data": {
+          "label": "Zahlen und Worte zu einem Zeitpunkt"
+        },
+        "x": 1692,
+        "y": 216
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "werktag"
+      },
+      {
+        "from": "werktag.then",
+        "to": "ja"
+      },
+      {
+        "from": "werktag.else",
+        "to": "nein"
+      },
+      {
+        "from": "ja",
+        "to": "ende"
+      },
+      {
+        "from": "nein",
+        "to": "ende"
+      }
+    ]
+  }
+}

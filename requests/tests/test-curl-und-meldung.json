@@ -1,0 +1,122 @@
+{
+  "type": "runbook",
+  "name": "Test Curl und Systemmeldung",
+  "description": "Zwei Knoten für das, was *nach* dem Lauf kommt.\n\n**Als curl.** „Kannst du mir das als curl schicken?“ — die Frage steht in jedem Fehlerbericht, und beantwortet hat sie bisher Handarbeit: Adresse abtippen, Header einzeln nachsehen, den Rumpf aus der Ansicht kopieren.\n\nAn den Eingang gehört der Ausgang **„request“** eines Request-Knotens. Den gab es bisher nicht: die Antwort kam zurück, der gesendete Request war vergessen. Jetzt steht er im Ergebnis — und zwar **auch dann, wenn nichts zurückkam**: ein Request, der scheiterte, ist genau der, den man erklären muss. Deshalb steht `request` im Umschlag neben der Antwort und nicht in ihr.\n\nGebaut wird aus demselben `WireRequest`, aus dem auch die Code-Ansicht neben dem Request-Editor schreibt. Damit kann der Befehl nicht von dem abweichen, was der Lauf getan hat.\n\n**Verdeckt werden die Header, deren Wert eine Anmeldung ist** — nach ihrem *Namen* und nicht nach ihrem Wert: der Token kann aus einer Antwort kommen und nirgends als Secret bekannt sein. Verdeckt heisst: der Befehl lässt sich zeigen und nicht ausführen. Eingesetzt heisst das Umgekehrte, und dann gehört er in keinen Chat.\n\n**Die Systemmeldung** geht dorthin, wo das Betriebssystem seine Meldungen sammelt, und bleibt dort stehen: anders als die Meldung im Ablauf hält sie nichts an und fragt nichts. Für Läufe, bei denen niemand vor dem Fenster sitzt.\n\nBeim ersten Mal fragt das System um Erlaubnis. Wird sie verweigert, sagt es der Knoten — eine Meldung, die niemand sieht, wäre sonst ein Schritt, der grün durchläuft und nichts tut.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "kind": "start",
+        "x": 60,
+        "y": 48
+      },
+      {
+        "id": "req",
+        "request": "requests/laendlekasse/produkte.json",
+        "name": "Produkte holen",
+        "comment": "Sein Ausgang „request“ trägt, was hinausging — auch wenn nichts zurückkommt.",
+        "x": 420,
+        "y": 48
+      },
+      {
+        "id": "befehl",
+        "kind": "curl",
+        "name": "Als curl, zum Zeigen",
+        "comment": "Verdeckt: der Befehl lässt sich in einen Fehlerbericht setzen und nicht ausführen.",
+        "vars": {
+          "input": "$req.request"
+        },
+        "data": {
+          "secrets": "verdecken"
+        },
+        "x": 780,
+        "y": 216
+      },
+      {
+        "id": "echt",
+        "kind": "curl",
+        "name": "Als curl, zum Ausführen",
+        "comment": "Mit Token — gehört in keinen Chat, dafür in die eigene Kommandozeile.",
+        "vars": {
+          "input": "$req.request"
+        },
+        "data": {
+          "secrets": "einsetzen"
+        },
+        "x": 780,
+        "y": 396
+      },
+      {
+        "id": "zeile",
+        "kind": "template",
+        "name": "Was zu melden ist",
+        "data": {
+          "text": "Lauf durch: Status {{status}} nach {{ms}} ms."
+        },
+        "x": 780,
+        "y": 96
+      },
+      {
+        "id": "melden",
+        "kind": "notify",
+        "name": "Fertig",
+        "comment": "Bleibt stehen, wo das System seine Meldungen sammelt — hält nichts an.",
+        "vars": {
+          "input": "$zeile.body"
+        },
+        "data": {
+          "title": "Zephyr: Abnahmelauf"
+        },
+        "x": 1140,
+        "y": -144
+      },
+      {
+        "id": "notiz",
+        "kind": "log",
+        "name": "Der Befehl",
+        "vars": {
+          "input": "$befehl.body"
+        },
+        "data": {
+          "label": "curl"
+        },
+        "flow": true,
+        "x": 1500,
+        "y": -24
+      },
+      {
+        "id": "ende",
+        "kind": "end",
+        "name": "Ende",
+        "vars": {
+          "zum_zeigen": "$befehl.body",
+          "zum_ausfuehren": "$echt.body",
+          "gemeldet": "$zeile.body"
+        },
+        "data": {
+          "label": "Befehl und Meldung"
+        },
+        "x": 1860,
+        "y": 48
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "req"
+      },
+      {
+        "from": "req",
+        "to": "melden"
+      },
+      {
+        "from": "notiz",
+        "to": "ende"
+      },
+      {
+        "from": "melden.success",
+        "to": "notiz"
+      }
+    ]
+  }
+}

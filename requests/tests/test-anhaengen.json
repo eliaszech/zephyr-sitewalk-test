@@ -1,0 +1,186 @@
+{
+  "type": "runbook",
+  "name": "Test Anhängen und Wegnehmen",
+  "description": "**Vier Karten für die vier Handgriffe**, mit denen eine Liste an ihren Enden wächst und schrumpft: `Append`, `Prepend`, `Take Last`, `Take First`.\n\n**Warum es sie braucht.** Der Merge legt zwei *Listen* zusammen; um ein einzelnes Ding anzuhängen, musste man es erst zu einer machen — „Als Liste“ oder „Liste bauen“ davor, dann mischen. Zwei Karten für den Handgriff, mit dem jede Sammlung wächst.\n\nUnd in der anderen Richtung: der Ausschnitt gibt das eine *oder* das andere. `-1` gibt das letzte als Liste von einem, `0 bis n-1` den Rest — und für das `n` braucht es die Anzahl, also einen dritten Knoten. Wer eine Sammlung abarbeitet, will an einer Stelle beides, und genau das geben die beiden unteren Karten: den Wert und den Rest.\n\n**Was hineingeht, wird ein Element** — auch wenn es selbst eine Liste ist. Darin liegt der Unterschied zum Merge, und es ist dieselbe Unterscheidung wie zwischen „Liste bauen“ und „Als Liste“: wer zwei Listen aneinanderhängen will, mischt sie; wer eine *in* eine andere legen will, hängt sie an. Die Karte rechts unten zeigt es.\n\n**Zwei Arten je Richtung und kein Schalter.** An der Karte soll man lesen, an welchem Ende die Liste wächst, statt sie dafür anklicken zu müssen — dieselbe Entscheidung wie bei Summe und Schnitt, die auch einmal ein Aggregat mit einer Auswahlliste waren.\n\n**Genommen wird nichts.** In einem Graphen wird nicht verändert: die Liste am Eingang bleibt, wie sie ist, und was herauskommt, sind neue Werte. „Pop“ und „Shift“ heissen die Arten trotzdem, weil man danach sucht.\n\n**Eine leere Liste ist kein Fehler,** sondern die Antwort: kein Element, ein leerer Rest. Dieselbe Regel wie an „Für jedes“, das über eine leere Liste gleich auf „done“ geht.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "kind": "start",
+        "x": 60,
+        "y": 48
+      },
+      {
+        "id": "liste",
+        "kind": "json",
+        "name": "Eine Liste",
+        "comment": "Wie sie aus einer Antwort käme — nach Neuigkeit sortiert.",
+        "data": {
+          "value": "[\"k-2\", \"k-7\", \"k-9\"]"
+        },
+        "x": 60,
+        "y": 216
+      },
+      {
+        "id": "neu",
+        "kind": "string",
+        "name": "Ein neuer Eintrag",
+        "data": {
+          "value": "k-11"
+        },
+        "x": 60,
+        "y": 384
+      },
+      {
+        "id": "hinten",
+        "kind": "push",
+        "name": "Ans Ende",
+        "comment": "Das Feld bliebe hier leer — der Wert kommt über die Leitung.",
+        "vars": {
+          "list": "$liste.body",
+          "value": "$neu.body"
+        },
+        "x": 468,
+        "y": 216
+      },
+      {
+        "id": "vorn",
+        "kind": "unshift",
+        "name": "An den Anfang",
+        "comment": "Dieselbe Karte, das andere Ende — und an der Karte abzulesen, ohne sie anzuklicken.",
+        "vars": {
+          "list": "$liste.body",
+          "value": "$neu.body"
+        },
+        "x": 468,
+        "y": 384
+      },
+      {
+        "id": "letztes",
+        "kind": "pop",
+        "name": "Das letzte weg",
+        "comment": "Zwei Auskünfte auf einmal: der Wert und der Rest. Mit dem Ausschnitt wären es drei Karten.",
+        "vars": {
+          "list": "$liste.body"
+        },
+        "x": 468,
+        "y": 552
+      },
+      {
+        "id": "erstes",
+        "kind": "shift",
+        "name": "Das erste weg",
+        "comment": "Der übliche Griff, wenn eine Antwort nach Neuigkeit sortiert zurückkommt: den obersten Eintrag nehmen, ohne die anderen zu verlieren.",
+        "vars": {
+          "list": "$liste.body"
+        },
+        "x": 468,
+        "y": 720
+      },
+      {
+        "id": "leer",
+        "kind": "json",
+        "name": "Nichts drin",
+        "data": {
+          "value": "[]"
+        },
+        "x": 60,
+        "y": 888
+      },
+      {
+        "id": "ausLeer",
+        "kind": "pop",
+        "name": "Aus einer leeren",
+        "comment": "Kein Fehler, sondern die Antwort: kein letztes Element, ein leerer Rest.",
+        "vars": {
+          "list": "$leer.body"
+        },
+        "x": 468,
+        "y": 888
+      },
+      {
+        "id": "verschachtelt",
+        "kind": "push",
+        "name": "Eine Liste als Element",
+        "comment": "Was hineingeht, wird EIN Element — auch eine Liste. Wer zwei Listen aneinanderhängen will, nimmt den Merge.",
+        "vars": {
+          "list": "$liste.body"
+        },
+        "data": {
+          "value": "[\"x\", \"y\"]"
+        },
+        "x": 468,
+        "y": 1056
+      },
+      {
+        "id": "zwei",
+        "kind": "json",
+        "name": "Zwei Werte",
+        "comment": "Als Liste — der Merge nimmt zwei davon.",
+        "data": {
+          "value": "[\"x\", \"y\"]"
+        },
+        "x": 60,
+        "y": 1224
+      },
+      {
+        "id": "gemischt",
+        "kind": "merge",
+        "name": "Zum Vergleich: Merge",
+        "comment": "Derselbe Wert, zwei Listen zusammengelegt — vier Elemente statt einer Schachtel.",
+        "vars": {
+          "a": "$liste.body",
+          "b": "$zwei.body"
+        },
+        "x": 876,
+        "y": 1056
+      },
+      {
+        "id": "notiz",
+        "kind": "log",
+        "name": "Log",
+        "vars": {
+          "hinten": "$hinten.body.items",
+          "genommen": "$letztes.body.value"
+        },
+        "data": {
+          "label": "Listen"
+        },
+        "flow": true,
+        "x": 876,
+        "y": 48
+      },
+      {
+        "id": "ende",
+        "kind": "end",
+        "name": "Ende",
+        "vars": {
+          "ans_ende": "$hinten.body.items",
+          "an_den_anfang": "$vorn.body.items",
+          "letztes": "$letztes.body.value",
+          "ohne_letztes": "$letztes.body.items",
+          "erstes": "$erstes.body.value",
+          "ohne_erstes": "$erstes.body.items",
+          "aus_leerer": "$ausLeer.body.value",
+          "als_element": "$verschachtelt.body.items",
+          "gemischt": "$gemischt.body"
+        },
+        "data": {
+          "label": "Vier Handgriffe an den Enden einer Liste"
+        },
+        "x": 1284,
+        "y": 216
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "notiz"
+      },
+      {
+        "from": "notiz",
+        "to": "ende"
+      }
+    ]
+  }
+}

@@ -1,0 +1,266 @@
+{
+  "type": "runbook",
+  "name": "Test Hex und Base32",
+  "description": "**Die beiden anderen Schreibweisen, in denen Bytes durch eine Textleitung gehen.** Base64 steht daneben und ist die häufigste — aber nicht die einzige.\n\n**Hex**, weil man es ziffernweise vergleicht: Signaturen, Schlüssel, Fingerabdrücke. Geschrieben wird klein, wie es jedes Werkzeug tut, das einen Hash ausgibt — gross wäre dieselbe Zahl und beim Vergleichen ein Unterschied, den niemand sieht. Gelesen wird grosszügig: Doppelpunkte, Bindestriche, Leerraum und ein `0x` davor fallen weg, damit man es aus einem Zertifikat oder einem Hex-Dump kopieren kann, ohne es erst zu putzen.\n\n**Base32**, weil man es abtippt: das Alphabet kennt weder `0` noch `1` noch `8`, und genau deshalb gibt es die Schreibweise — was man abtippt, verwechselt man mit `O`, `l` und `B`. Das Geheimnis eines Einmalkennworts steht so, und jede Authenticator-App gibt es in Vierergruppen heraus.\n\n**„bytes as“ ist der wichtige Schalter.** Beide rechnen über *Bytes* und nicht über Text, und das ist der ganze Punkt: ein Signaturwert, der als base64 ankommt und als Hex hinausgehen soll, ginge sonst unterwegs durch eine Zeichenkette — und die wäre bei Bytes, die kein UTF-8 sind, gar keine. Das Feld sagt, wie die *andere* Seite geschrieben steht; hex und base32 stehen ja schon fest.\n\nDeshalb ist es auch ein **Fehler** und kein Ersatzzeichen-Salat, wenn `deadbeef` als Text gelesen werden soll: dahinter stehen keine lesbaren Zeichen. Die Meldung sagt, dass base64 der Weg dafür ist.\n\n**Streng bei der Länge, grosszügig beim Rest.** Eine ungerade Anzahl Hex-Ziffern ist kein halbes Byte, sondern ein fehlendes Zeichen — und ob es vorn oder hinten fehlt, weiss nur der, der es kopiert hat. Zu raten hiesse, jedes Byte danach zu verschieben.\n\nGerechnet wird nach RFC 4648, in beiden Richtungen gegen die Vektoren der Norm geprüft.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "kind": "start",
+        "x": 60,
+        "y": 48
+      },
+      {
+        "id": "wort",
+        "kind": "string",
+        "name": "Ein Text",
+        "comment": "Der Vektor aus RFC 4648 — damit sich das Ergebnis nachschlagen lässt.",
+        "data": {
+          "value": "foobar"
+        },
+        "x": 60,
+        "y": 216
+      },
+      {
+        "id": "hex",
+        "kind": "hex",
+        "name": "Als Hex",
+        "comment": "Klein geschrieben, wie es jedes Werkzeug tut, das einen Hash ausgibt.",
+        "vars": {
+          "input": "$wort.body"
+        },
+        "x": 468,
+        "y": 216
+      },
+      {
+        "id": "hexTrenner",
+        "kind": "hex",
+        "name": "Mit Doppelpunkten",
+        "comment": "Wie ein Fingerabdruck geschrieben steht — man vergleicht ihn Paar für Paar.",
+        "vars": {
+          "input": "$wort.body"
+        },
+        "data": {
+          "separator": ":"
+        },
+        "x": 468,
+        "y": 360
+      },
+      {
+        "id": "zurueck",
+        "kind": "hex",
+        "name": "Und wieder her",
+        "comment": "Der Trenner fällt beim Lesen weg, samt Leerraum und einem 0x davor.",
+        "vars": {
+          "input": "$hexTrenner.body"
+        },
+        "data": {
+          "mode": "decode"
+        },
+        "x": 876,
+        "y": 360
+      },
+      {
+        "id": "b32",
+        "kind": "base32",
+        "name": "Als Base32",
+        "comment": "Mit Auffüllung, wie die Norm es verlangt.",
+        "vars": {
+          "input": "$wort.body"
+        },
+        "x": 468,
+        "y": 504
+      },
+      {
+        "id": "b32ohne",
+        "kind": "base32",
+        "name": "Ohne Auffüllung",
+        "comment": "So steht es in einer Authenticator-App: ohne die Gleichheitszeichen.",
+        "vars": {
+          "input": "$wort.body"
+        },
+        "data": {
+          "padding": "false"
+        },
+        "x": 468,
+        "y": 648
+      },
+      {
+        "id": "b32gelesen",
+        "kind": "base32",
+        "name": "Abgetippt gelesen",
+        "comment": "Gross wie klein, in Vierergruppen — so gibt ein Dienst sein Geheimnis heraus.",
+        "data": {
+          "mode": "decode",
+          "value": "",
+          "bytes": "text"
+        },
+        "vars": {
+          "input": "$abgetippt.body"
+        },
+        "x": 876,
+        "y": 648
+      },
+      {
+        "id": "abgetippt",
+        "kind": "string",
+        "name": "Wie man es abschreibt",
+        "data": {
+          "value": "mzxw 6ytb oi"
+        },
+        "x": 60,
+        "y": 648
+      },
+      {
+        "id": "bild",
+        "kind": "testimage",
+        "name": "Ein Prüfbild",
+        "comment": "Echte Bytes und kein Text: ein PNG von 8×8. Genau der Fall, für den „bytes as“ da ist.",
+        "data": {
+          "width": "8",
+          "color": "#4a90d9"
+        },
+        "x": 60,
+        "y": 984
+      },
+      {
+        "id": "bildHex",
+        "kind": "hex",
+        "name": "Das Bild als Hex",
+        "comment": "base64 hinein, hex heraus — ohne unterwegs durch einen Text zu gehen, den es nicht gibt.",
+        "vars": {
+          "input": "$bild.body.data"
+        },
+        "data": {
+          "bytes": "base64"
+        },
+        "x": 468,
+        "y": 984
+      },
+      {
+        "id": "anfang",
+        "kind": "slice",
+        "name": "Die ersten acht Zeichen",
+        "comment": "Die PNG-Signatur in Hex: 89504e47. Daran erkennt sie jeder Leser.",
+        "vars": {
+          "input": "$bildHex.body"
+        },
+        "data": {
+          "from": "0",
+          "count": "8"
+        },
+        "x": 876,
+        "y": 984
+      },
+      {
+        "id": "signatur",
+        "kind": "hash",
+        "name": "Eine Signatur",
+        "comment": "Der Hash-Knoten gibt sie schon als Hex — hier fängt der interessante Fall an.",
+        "vars": {
+          "input": "$wort.body"
+        },
+        "data": {
+          "algorithm": "sha256",
+          "encoding": "hex"
+        },
+        "x": 60,
+        "y": 816
+      },
+      {
+        "id": "alsBase64",
+        "kind": "hex",
+        "name": "Dieselbe als Base64",
+        "comment": "Hex hinein, Bytes heraus, als base64 geschrieben — ohne unterwegs durch einen Text zu gehen, den es nicht gibt.",
+        "vars": {
+          "input": "$signatur.body"
+        },
+        "data": {
+          "mode": "decode",
+          "bytes": "base64"
+        },
+        "x": 468,
+        "y": 816
+      },
+      {
+        "id": "wiederHex",
+        "kind": "hex",
+        "name": "Und zurück",
+        "comment": "Die Gegenprobe: dasselbe wie am Hash-Knoten links.",
+        "vars": {
+          "input": "$alsBase64.body"
+        },
+        "data": {
+          "bytes": "base64"
+        },
+        "x": 876,
+        "y": 816
+      },
+      {
+        "id": "gleich",
+        "kind": "assert",
+        "name": "Wirklich dieselbe?",
+        "comment": "Hin und zurück muss dasselbe ergeben — sonst hat unterwegs ein Byte gefehlt. Der geprüfte Wert kommt durch, die Prüfung steht in der Leitung statt daneben.",
+        "vars": {
+          "input": "$wiederHex.body",
+          "expected": "$signatur.body"
+        },
+        "x": 1284,
+        "y": 816
+      },
+      {
+        "id": "notiz",
+        "kind": "log",
+        "name": "Log",
+        "vars": {
+          "hex": "$hex.body",
+          "base32": "$b32.body"
+        },
+        "data": {
+          "label": "Schreibweisen"
+        },
+        "flow": true,
+        "x": 876,
+        "y": 48
+      },
+      {
+        "id": "ende",
+        "kind": "end",
+        "name": "Ende",
+        "vars": {
+          "hex": "$hex.body",
+          "hex_mit_trenner": "$hexTrenner.body",
+          "hex_zurueck": "$zurueck.body",
+          "base32": "$b32.body",
+          "base32_ohne_auffuellung": "$b32ohne.body",
+          "base32_abgetippt": "$b32gelesen.body",
+          "signatur_hex": "$signatur.body",
+          "signatur_base64": "$alsBase64.body",
+          "hin_und_zurueck": "$gleich.body",
+          "bild_typ": "$bild.body.type",
+          "bild_groesse": "$bild.body.size",
+          "bild_signatur": "$anfang.body.value"
+        },
+        "data": {
+          "label": "Zwei Alphabete, dieselben Bytes"
+        },
+        "x": 1692,
+        "y": 216
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "notiz"
+      },
+      {
+        "from": "notiz",
+        "to": "gleich"
+      },
+      {
+        "from": "gleich",
+        "to": "ende"
+      }
+    ]
+  }
+}

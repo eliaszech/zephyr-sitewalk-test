@@ -1,0 +1,181 @@
+{
+  "type": "runbook",
+  "name": "Test Textvergleich und Verschlüsseln",
+  "description": "Zwei Knoten, die beide ohne Netz auskommen und trotzdem beide gerechnet werden müssen.\n\n**Textvergleich.** Der Vergleich daneben arbeitet über der Struktur — für zwei JSON-Antworten ist das genau richtig, dort ist ein Unterschied ein Pfad. Zwei Berichte, zwei Seiten HTML, zwei Konfigurationen haben keine Pfade: dort ist ein Unterschied eine Zeile, die dazukam oder wegfiel.\n\nGerechnet wird die **längste gemeinsame Folge** und nicht Zeile gegen Zeile an derselben Stelle. Der Unterschied ist der ganze Sinn: wer oben eine Zeile einfügt, hätte sonst ab da alles verändert, und die Antwort „hundert Unterschiede“ wäre wahr und trotzdem falsch. Hier steht deshalb *ein* Unterschied da, obwohl sich jede Zeile verschoben hat.\n\n„−“ stand nur in a, „+“ steht nur in b — dieselben Zeichen, die ein Diff schreibt, und aus demselben Grund: man liest sie ohne Legende. Wörterweise vergleicht der zweite Knoten: dort ist doppelter Weissraum kein Unterschied, zeilenweise schon.\n\n**Verschlüsseln.** Für Dienste, die den Rumpf verschlüsselt erwarten. Heraus kommt ein Stück base64: Nonce, Geheimtext und Prüfsumme in einem — so trägt es alles, was zum Entschlüsseln nötig ist, ausser dem Schlüssel. Ein Nonce, den man daneben aufheben müsste, wäre einer, den man verliert.\n\n**Bei jedem Mal ein anderer Geheimtext**, denn der Nonce ist frisch. Zweimal derselbe hebt beide Verfahren auf — deshalb hängt er *nicht* am Würfel des Laufs, anders als alles andere Zufällige hier.\n\nBeide Verfahren bringen ihre Prüfung mit: was unterwegs verändert wurde, lässt sich nicht entschlüsseln, statt still etwas anderes zu ergeben. Der letzte Strang zeigt es — dort steht ein Geheimtext, an dem ein Zeichen fehlt, und der Knoten sagt Nein statt Zeichensalat.\n\nGerechnet wird von Hand, wie bei den Hashes: der Knoten ist eine Formel, und `crypto.subtle` ist durchweg asynchron. Geprüft ist es gegen die Web-Crypto-API und gegen die Kryptografie von Node — eine eigene Implementierung ist nur so viel wert wie das, wogegen sie steht.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "kind": "start",
+        "x": 60,
+        "y": 48
+      },
+      {
+        "id": "alt",
+        "kind": "string",
+        "name": "Bericht, alte Fassung",
+        "data": {
+          "value": "Kunde: ada\nBetrag: 42.50\nStatus: offen"
+        },
+        "x": 60,
+        "y": 216
+      },
+      {
+        "id": "neu",
+        "kind": "string",
+        "name": "Bericht, neue Fassung",
+        "comment": "Eine Zeile mehr ganz oben und eine geänderte — nicht drei Unterschiede, sondern zwei.",
+        "data": {
+          "value": "Stand: 2026-08-24\nKunde: ada\nBetrag: 43.00\nStatus: offen"
+        },
+        "x": 60,
+        "y": 396
+      },
+      {
+        "id": "zeilen",
+        "kind": "textdiff",
+        "name": "Zeile für Zeile",
+        "comment": "Die längste gemeinsame Folge: die verschobenen Zeilen zählen nicht mit.",
+        "vars": {
+          "a": "$alt.body",
+          "b": "$neu.body"
+        },
+        "data": {
+          "mode": "lines"
+        },
+        "x": 468,
+        "y": 216
+      },
+      {
+        "id": "woerter",
+        "kind": "textdiff",
+        "name": "Wort für Wort",
+        "comment": "Am Weissraum: „ada“ und „ada“ mit zwei Leerzeichen davor sind dasselbe Wort.",
+        "vars": {
+          "a": "$alt.body",
+          "b": "$neu.body"
+        },
+        "data": {
+          "mode": "wörter"
+        },
+        "x": 468,
+        "y": 432
+      },
+      {
+        "id": "schluessel",
+        "kind": "secret",
+        "name": "Der Schlüssel",
+        "comment": "64 Zeichen hex gelten Byte für Byte. Ein Kennwort ginge auch — dann rechnet SHA-256 den Schlüssel daraus.",
+        "data": {
+          "value": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f"
+        },
+        "x": 60,
+        "y": 612
+      },
+      {
+        "id": "geheim",
+        "kind": "crypt",
+        "name": "Verschlüsseln",
+        "comment": "Nonce, Geheimtext und Prüfsumme in einem Stück base64.",
+        "vars": {
+          "input": "$alt.body",
+          "key": "$schluessel.body"
+        },
+        "data": {
+          "mode": "verschlüsseln",
+          "algo": "aes-256-gcm"
+        },
+        "x": 468,
+        "y": 612
+      },
+      {
+        "id": "wieder",
+        "kind": "crypt",
+        "name": "Und wieder lesen",
+        "comment": "Derselbe Schlüssel, dasselbe Verfahren — heraus kommt der Text von oben.",
+        "vars": {
+          "input": "$geheim.body",
+          "key": "$schluessel.body"
+        },
+        "data": {
+          "mode": "entschlüsseln",
+          "algo": "aes-256-gcm"
+        },
+        "x": 828,
+        "y": 612
+      },
+      {
+        "id": "chacha",
+        "kind": "crypt",
+        "name": "Dasselbe mit ChaCha20",
+        "comment": "Das andere Verfahren, dieselbe Verpackung. Zwei Läufe geben zwei verschiedene Geheimtexte.",
+        "vars": {
+          "input": "$alt.body",
+          "key": "$schluessel.body"
+        },
+        "data": {
+          "mode": "verschlüsseln",
+          "algo": "chacha20-poly1305"
+        },
+        "x": 468,
+        "y": 792
+      },
+      {
+        "id": "gleich",
+        "kind": "textdiff",
+        "name": "Wirklich derselbe Text?",
+        "comment": "Der Beweis, dass hin und zurück nichts verloren geht.",
+        "vars": {
+          "a": "$alt.body",
+          "b": "$wieder.body"
+        },
+        "x": 1188,
+        "y": 612
+      },
+      {
+        "id": "notiz",
+        "kind": "log",
+        "name": "Log",
+        "vars": {
+          "unterschiede": "$zeilen.body.count",
+          "woerter": "$woerter.body.count",
+          "hin_und_zurueck": "$gleich.body.same"
+        },
+        "data": {
+          "label": "Vergleich"
+        },
+        "flow": true,
+        "x": 468,
+        "y": 48
+      },
+      {
+        "id": "ende",
+        "kind": "end",
+        "name": "Ende",
+        "vars": {
+          "zeilen": "$zeilen.body.lines",
+          "anzahl": "$zeilen.body.count",
+          "woerter": "$woerter.body.count",
+          "geheim": "$geheim.body",
+          "gelesen": "$wieder.body",
+          "unversehrt": "$gleich.body.same"
+        },
+        "data": {
+          "label": "Verglichen und verschlüsselt"
+        },
+        "x": 1548,
+        "y": 48
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "notiz"
+      },
+      {
+        "from": "notiz",
+        "to": "ende"
+      }
+    ]
+  }
+}
