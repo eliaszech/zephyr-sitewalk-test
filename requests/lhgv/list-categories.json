@@ -1,0 +1,9 @@
+{
+  "name": "List Categories",
+  "method": "GET",
+  "url": "{{base_url}}/api/rest/v1/categories",
+  "query": {
+    "limit": "50",
+    "search": "{\"code\":[{\"operator\":\"IN\",\"value\":[\"Gastronomie\"]}]}"
+  }
+}

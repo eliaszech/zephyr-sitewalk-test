@@ -6,22 +6,8 @@
       {
         "id": "start",
         "kind": "start",
-        "x": -156,
+        "x": -408,
         "y": 600
-      },
-      {
-        "id": "average",
-        "kind": "average",
-        "vars": {
-          "list": "$json.body"
-        },
-        "data": {
-          "list": "",
-          "field": "key"
-        },
-        "group": "Average",
-        "x": 480,
-        "y": 216
       },
       {
         "id": "json",
@@ -34,41 +20,8 @@
         "y": 216
       },
       {
-        "id": "round",
-        "kind": "round",
-        "vars": {
-          "value": "$average.body"
-        },
-        "data": {
-          "digits": "2",
-          "mode": "kaufmännisch"
-        },
-        "group": "Average",
-        "x": 876,
-        "y": 216
-      },
-      {
-        "id": "numberformat",
-        "kind": "numberformat",
-        "vars": {
-          "value": "$average.body"
-        },
-        "data": {
-          "style": "zahl",
-          "currency": "",
-          "digits": "2",
-          "value": ""
-        },
-        "group": "Average",
-        "x": 876,
-        "y": 348
-      },
-      {
         "id": "tonumber",
         "kind": "tonumber",
-        "vars": {
-          "input": "$numberformat.body"
-        },
         "data": {
           "mode": "dezimal",
           "base": ""
@@ -76,91 +29,8 @@
         "group": "Average",
         "x": 1212,
         "y": 348
-      },
-      {
-        "id": "test-yappie",
-        "kind": "socketio",
-        "request": "requests/laendlekasse/test-yappie.json",
-        "data": {
-          "messages": "10"
-        },
-        "x": 192,
-        "y": 600
-      },
-      {
-        "id": "switch",
-        "kind": "switch",
-        "vars": {
-          "input": "$test-yappie.body.event"
-        },
-        "data": {
-          "cases": "input == \"user:presenceSync\"\ninput == \"user:statusChange\""
-        },
-        "flowOuts": [
-          "presence",
-          "statuschange"
-        ],
-        "x": 804,
-        "y": 852
-      },
-      {
-        "id": "fork",
-        "kind": "fork",
-        "x": 192,
-        "y": 804
-      },
-      {
-        "id": "log-2",
-        "kind": "log",
-        "vars": {
-          "input": "$switch.body.value"
-        },
-        "data": {
-          "label": "Presence"
-        },
-        "flow": true,
-        "x": 1224,
-        "y": 780
-      },
-      {
-        "id": "log-2-2",
-        "kind": "log",
-        "vars": {
-          "input": "$switch.body.value"
-        },
-        "data": {
-          "label": "Status Change"
-        },
-        "flow": true,
-        "x": 1224,
-        "y": 948
       }
     ],
-    "edges": [
-      {
-        "from": "start",
-        "to": "test-yappie"
-      },
-      {
-        "from": "test-yappie.each",
-        "to": "fork"
-      },
-      {
-        "from": "fork.b",
-        "to": "switch"
-      },
-      {
-        "from": "switch.presence",
-        "to": "log-2"
-      },
-      {
-        "from": "switch.statuschange",
-        "to": "log-2-2"
-      },
-      {
-        "from": "fork.a",
-        "to": "test-yappie"
-      }
-    ]
+    "edges": []
   }
 }

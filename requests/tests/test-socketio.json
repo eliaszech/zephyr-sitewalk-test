@@ -13,10 +13,9 @@
       {
         "id": "hoeren",
         "kind": "socketio",
-        "name": "Zuhören",
         "request": "requests/laendlekasse/test-yappie.json",
+        "name": "Zuhören",
         "comment": "Verbindet beim ersten Ankommen und gibt danach je Ankunft eine Nachricht heraus. Beide Grenzen sind leer: er hört zu, bis die Gegenstelle auflegt oder jemand den Lauf anhält.",
-        "data": {},
         "x": 468,
         "y": 48
       },

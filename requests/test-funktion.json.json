@@ -1,0 +1,72 @@
+{
+  "type": "function",
+  "name": "Test Funktion",
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "kind": "start",
+        "params": {
+          "list": ""
+        },
+        "x": 120,
+        "y": 216
+      },
+      {
+        "id": "average",
+        "kind": "average",
+        "vars": {
+          "list": "$start.body.list"
+        },
+        "data": {
+          "list": "",
+          "field": "key"
+        },
+        "group": "Average",
+        "x": 432,
+        "y": 216
+      },
+      {
+        "id": "round",
+        "kind": "round",
+        "vars": {
+          "value": "$average.body"
+        },
+        "data": {
+          "digits": "2",
+          "mode": "kaufmännisch"
+        },
+        "group": "Average",
+        "x": 828,
+        "y": 216
+      },
+      {
+        "id": "numberformat",
+        "kind": "numberformat",
+        "vars": {
+          "value": "$average.body"
+        },
+        "data": {
+          "style": "zahl",
+          "currency": "",
+          "digits": "2",
+          "value": ""
+        },
+        "group": "Average",
+        "x": 828,
+        "y": 348
+      },
+      {
+        "id": "end",
+        "kind": "end",
+        "vars": {
+          "numberformat": "$numberformat.body",
+          "round": "$round.body"
+        },
+        "x": 1272,
+        "y": 240
+      }
+    ],
+    "edges": []
+  }
+}

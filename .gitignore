@@ -3,3 +3,6 @@
 
 # Zephyr: lokale Daten, nicht einchecken
 .zephyr/history.json
+
+# Zephyr: lokale Daten, nicht einchecken
+.zephyr/state.json

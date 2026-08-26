@@ -1,6 +1,6 @@
 {
   "auth": {
-    "token": "{{token}}",
-    "type": "bearer"
+    "type": "bearer",
+    "token": "{{token}}"
   }
 }

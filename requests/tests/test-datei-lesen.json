@@ -16,8 +16,8 @@
         "name": "Kunden als JSON",
         "comment": "„auto“: eine .json wird gelesen, alles andere bleibt Text. Danach hat „value“ Felder, an die eine Leitung passt.",
         "data": {
-          "path": "daten/kunden.json",
-          "format": "auto"
+          "format": "auto",
+          "file": "daten/kunden.json"
         },
         "x": 420,
         "y": 48
@@ -38,8 +38,8 @@
         "name": "Kennungen zeilenweise",
         "comment": "„zeilen“ gibt eine Liste — leere Zeilen fallen weg, auch die letzte hinter dem Zeilenumbruch am Dateiende.",
         "data": {
-          "path": "daten/kennungen.txt",
-          "format": "zeilen"
+          "format": "zeilen",
+          "file": "daten/kennungen.txt"
         },
         "x": 420,
         "y": 288
@@ -75,7 +75,7 @@
         "name": "Gibt es nicht",
         "comment": "Absichtlich daneben. Der Knoten meldet einen Fehler — der Ablauf geht über „error“ weiter, und der Fallback fängt den Wert auf.",
         "data": {
-          "path": "daten/gibtsnicht.json"
+          "file": "daten/gibtsnicht.json"
         },
         "x": 420,
         "y": 480

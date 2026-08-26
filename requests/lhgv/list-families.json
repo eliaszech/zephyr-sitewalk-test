@@ -1,0 +1,19 @@
+{
+  "name": "List Families",
+  "method": "GET",
+  "url": "{{base_url}}/api/rest/v1/families",
+  "query": [
+    {
+      "key": "search",
+      "value": "{\"updated\":[{\"operator\":\">\",\"value\":\"2020-07-04T10:00:00Z\"}]}",
+      "enabled": false
+    },
+    {
+      "key": "limit",
+      "value": "50"
+    }
+  ],
+  "headers": {
+    "Accept": "application/json"
+  }
+}

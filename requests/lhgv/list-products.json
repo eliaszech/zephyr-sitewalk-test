@@ -1,0 +1,16 @@
+{
+  "name": "List Products",
+  "method": "GET",
+  "url": "{{base_url}}/api/rest/v1/products-uuid",
+  "auth": {
+    "type": "bearer",
+    "token": "{{token}}"
+  },
+  "query": [
+    {
+      "key": "search",
+      "value": "{\"family\":[{\"operator\":\"IN\",\"value\":[\"Gastronomie\"]}]}",
+      "enabled": false
+    }
+  ]
+}
