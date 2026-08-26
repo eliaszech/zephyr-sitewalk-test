@@ -1,7 +1,9 @@
 {
   "environments": {
     "local": {
-      "base_url": "https://ltm.contentdesk.io"
+      "base_url": "https://ltm.contentdesk.io",
+      "username": "lhgv_0425",
+      "client_id": "8_31mprca7yuio0k0og4k0c8c488wkow04cok4s04sko4o4s8ccg"
     }
   },
   "auth": {
