@@ -1,0 +1,181 @@
+{
+  "type": "runbook",
+  "name": "Test Suchen mit Pfad",
+  "description": "Zwei Orte, jeder mit seinen Namen in mehreren Sprachen — der Fall, für den „Find“ und „Filter“ die Felder **in** und **take** haben.\n\n**Mit Stern** (`*.values.name`) wird in den Namen *aller* Datensätze gesucht: eingesammelt wird flach. Der Find nimmt davon den **ersten** Treffer — hier „Genf“, weil Genf zuerst dasteht —, der Filter daneben **alle**: „Genf“ und „Zürich“.\n\nWer einen bestimmten Datensatz meint, sucht ihn zuerst: der zweite Find nimmt den Ort mit dem Code `ZRH` und der dritte dessen Namen über `in: values.name` — heraus kommt „Zürich“, und der Extract dazwischen entfällt.\n\n**take** schneidet zu (`value`); das ganze getroffene Objekt steht daneben, am Find als `item`, am Filter als `matches`. Und ohne Treffer ist es kein Fehler: `it_CH` gibt es nicht, also steht `found` auf falsch, `index` auf −1 und `value` auf nichts.\n\nDenselben Pfad nehmen **Anzahl** (vier Namen über beide Orte) und **irgendeiner** (`fr_CH`: ja) — dort gibt es kein `take`, denn aus einer Zahl und einem Ja ist nichts zuzuschneiden.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "kind": "start",
+        "x": 60,
+        "y": 48
+      },
+      {
+        "id": "orte",
+        "kind": "json",
+        "name": "Zwei Orte",
+        "comment": "So kommt es aus einer API: aussen eine Liste, innen je ein Array mit einem Eintrag je Sprache.",
+        "data": {
+          "value": "[{\"id\": 1, \"code\": \"GVA\", \"values\": {\"name\": [{\"locale\": \"fr_CH\", \"value\": \"Genève\"}, {\"locale\": \"de_CH\", \"value\": \"Genf\"}]}}, {\"id\": 2, \"code\": \"ZRH\", \"values\": {\"name\": [{\"locale\": \"de_CH\", \"value\": \"Zürich\"}, {\"locale\": \"en_GB\", \"value\": \"Zurich\"}]}}]"
+        },
+        "x": 60,
+        "y": 264
+      },
+      {
+        "id": "irgendein_de",
+        "kind": "find",
+        "name": "Erster de_CH-Name",
+        "comment": "Der Stern steht für die Stelle, die man nicht kennt — gesucht wird in den Namen aller Orte, und der erste Treffer gewinnt.",
+        "vars": {
+          "list": "$orte.body"
+        },
+        "data": {
+          "in": "*.values.name",
+          "where": "locale == de_CH",
+          "take": "value"
+        },
+        "x": 468,
+        "y": 216
+      },
+      {
+        "id": "zuerich",
+        "kind": "find",
+        "name": "Der Ort ZRH",
+        "comment": "Ohne „in“: am Eingang liegt die Liste schon. Ohne „take“ kommt das ganze Element heraus.",
+        "vars": {
+          "list": "$orte.body"
+        },
+        "data": {
+          "where": "code == ZRH"
+        },
+        "x": 468,
+        "y": 372
+      },
+      {
+        "id": "zuerich_de",
+        "kind": "find",
+        "name": "Sein de_CH-Name",
+        "comment": "„in“ führt vom gefundenen Ort zu seinen Namen — der Extract dazwischen entfällt.",
+        "vars": {
+          "list": "$zuerich.body.item"
+        },
+        "data": {
+          "in": "values.name",
+          "where": "locale == de_CH",
+          "take": "value"
+        },
+        "x": 840,
+        "y": 372
+      },
+      {
+        "id": "alle_de",
+        "kind": "filter",
+        "name": "Alle de_CH-Namen",
+        "comment": "Dieselben drei Felder wie am Find — nur kommen hier alle Treffer heraus: „Genf“ und „Zürich“.",
+        "vars": {
+          "list": "$orte.body"
+        },
+        "data": {
+          "in": "*.values.name",
+          "where": "locale == de_CH",
+          "take": "value"
+        },
+        "x": 468,
+        "y": 660
+      },
+      {
+        "id": "wie_viele",
+        "kind": "count",
+        "name": "Namen insgesamt",
+        "comment": "Auch „Anzahl“ hat das Feld — hier ohne Bedingung: vier Namen über beide Orte.",
+        "vars": {
+          "input": "$orte.body"
+        },
+        "data": {
+          "in": "*.values.name"
+        },
+        "x": 840,
+        "y": 660
+      },
+      {
+        "id": "hat_franzoesisch",
+        "kind": "any",
+        "name": "Gibt es fr_CH?",
+        "comment": "„alle“ und „irgendeiner“ nehmen denselben Pfad — nur „take“ gibt es dort nicht: aus einem Ja gibt es nichts zuzuschneiden.",
+        "vars": {
+          "list": "$orte.body"
+        },
+        "data": {
+          "in": "*.values.name",
+          "where": "locale == fr_CH"
+        },
+        "x": 840,
+        "y": 528
+      },
+      {
+        "id": "fehlt",
+        "kind": "find",
+        "name": "Kein it_CH",
+        "comment": "Nicht gefunden ist kein Fehler, sondern die Auskunft: „found“ sagt es.",
+        "vars": {
+          "list": "$orte.body"
+        },
+        "data": {
+          "in": "*.values.name",
+          "where": "locale == it_CH",
+          "take": "value"
+        },
+        "x": 468,
+        "y": 528
+      },
+      {
+        "id": "notiz",
+        "kind": "log",
+        "name": "Log",
+        "vars": {
+          "erster_de": "$irgendein_de.body.value",
+          "zuerich_de": "$zuerich_de.body.value"
+        },
+        "data": {
+          "label": "Namen"
+        },
+        "flow": true,
+        "x": 468,
+        "y": 48
+      },
+      {
+        "id": "ende",
+        "kind": "end",
+        "name": "Ende",
+        "vars": {
+          "erster_de_name": "$irgendein_de.body.value",
+          "erster_de_eintrag": "$irgendein_de.body.item",
+          "erster_de_stelle": "$irgendein_de.body.index",
+          "zuerich_de_name": "$zuerich_de.body.value",
+          "zuerich_code": "$zuerich.body.item.code",
+          "alle_de_namen": "$alle_de.body.items",
+          "alle_de_anzahl": "$alle_de.body.count",
+          "namen_insgesamt": "$wie_viele.body",
+          "hat_franzoesisch": "$hat_franzoesisch.body.ok",
+          "it_gefunden": "$fehlt.body.found",
+          "it_stelle": "$fehlt.body.index"
+        },
+        "data": {
+          "label": "Was die drei Suchen ergeben"
+        },
+        "x": 840,
+        "y": 48
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "notiz"
+      },
+      {
+        "from": "notiz",
+        "to": "ende"
+      }
+    ]
+  }
+}

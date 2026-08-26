@@ -1,0 +1,154 @@
+{
+  "type": "runbook",
+  "name": "Test Zähler",
+  "description": "Eine Zahl, die den Lauf überdauert — Rechnungsnummern, Kundennummern, alles, was ein Dienst nur einmal annimmt.\n\nDie Schleife dreht **drei** Durchgänge, und der Zähler ist ein Schritt darin: er zählt **je Vorbeikommen**, nicht je Lauf. Beim ersten Start stehen also 1000, 1001, 1002 im Log; beim zweiten 1003, 1004, 1005 — der Startwert gilt nur, solange nie gezählt wurde.\n\nDaneben zählt „Kunden“ einmal je Lauf und in Zehnerschritten, und zwar mit `scope: workspace`: derselbe Name in einem anderen Runbook meint denselben Zähler.\n\nAm Ende steht derselbe Zähler noch einmal, diesmal **angehalten** (`hold`): er gibt die Nummer aus, die als Nächstes käme, verbraucht sie aber nicht — `counted` steht auf falsch, und der nächste echte Lauf bekommt genau diese Nummer. Zweimal hintereinander gestartet, zeigt er darum zweimal dasselbe.\n\n**Zurücksetzen** geht auf zwei Wegen: der Knopf „zurücksetzen“ im Inspektor am Zähler, oder der zweite Startknoten links unten — er ist stillgelegt und führt auf den Ablauf-Eingang `reset` des Zählers. Einschalten, einmal laufen lassen, und die Rechnungsnummern fangen wieder bei 1000 an.\n\nDer Stand liegt in `.zephyr/state.json` unter `counter:` und gehört dem Rechner — er geht nicht ins Commit.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "kind": "start",
+        "x": 60,
+        "y": 48
+      },
+      {
+        "id": "kunden",
+        "kind": "counter",
+        "name": "Kundennummer",
+        "comment": "Einmal je Lauf, in Zehnerschritten — und für den ganzen Workspace.",
+        "data": {
+          "name": "kunde",
+          "start": "5000",
+          "step": "10",
+          "scope": "workspace"
+        },
+        "x": 396,
+        "y": 48
+      },
+      {
+        "id": "dreimal",
+        "kind": "loop",
+        "name": "Drei Rechnungen",
+        "data": {
+          "times": "3"
+        },
+        "x": 732,
+        "y": 48
+      },
+      {
+        "id": "nr",
+        "kind": "counter",
+        "name": "Rechnungsnummer",
+        "comment": "Im Körper der Schleife: er zählt bei jedem Durchgang weiter, nicht einmal je Lauf.",
+        "data": {
+          "name": "rechnung",
+          "start": "1000"
+        },
+        "x": 732,
+        "y": 264
+      },
+      {
+        "id": "beleg",
+        "kind": "template",
+        "name": "Belegtext",
+        "comment": "Damit man an einer Stelle sieht, dass beide Zahlen zusammenpassen.",
+        "vars": {
+          "nummer": "$nr.body.value",
+          "kunde": "$kunden.body.value",
+          "runde": "$dreimal.body.index"
+        },
+        "data": {
+          "template": "Beleg {{nummer}} für Kunde {{kunde}} (Durchgang {{runde}})"
+        },
+        "x": 1068,
+        "y": 264
+      },
+      {
+        "id": "notiz",
+        "kind": "log",
+        "name": "Log",
+        "vars": {
+          "beleg": "$beleg.body"
+        },
+        "data": {
+          "label": "Beleg"
+        },
+        "flow": true,
+        "x": 1068,
+        "y": 396
+      },
+      {
+        "id": "zurueck",
+        "kind": "start",
+        "name": "Zurücksetzen",
+        "comment": "Ein zweiter Start, stillgelegt: er beginnt nichts, solange er aus ist. Wer den Zähler wieder bei 1000 anfangen lassen will, schaltet ihn ein und lässt einmal laufen — oder nimmt den Knopf im Inspektor am Zähler.",
+        "disabled": true,
+        "x": 396,
+        "y": 396
+      },
+      {
+        "id": "vorschau",
+        "kind": "counter",
+        "name": "Nächste Nummer",
+        "comment": "Angehalten: derselbe Zähler, dieselbe Zahl — nur verbraucht sie niemand. „counted“ steht deshalb auf falsch, und der nächste echte Lauf bekommt genau diese Nummer.",
+        "data": {
+          "name": "rechnung",
+          "start": "1000",
+          "hold": "true"
+        },
+        "x": 1404,
+        "y": 264
+      },
+      {
+        "id": "ende",
+        "kind": "end",
+        "name": "Ende",
+        "vars": {
+          "letzte_rechnung": "$nr.body.value",
+          "kundennummer": "$kunden.body.value",
+          "letzter_beleg": "$beleg.body",
+          "naechste_nummer": "$vorschau.body.value",
+          "verbraucht": "$vorschau.body.counted"
+        },
+        "data": {
+          "label": "Was der Lauf verbraucht hat"
+        },
+        "x": 1404,
+        "y": 48
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "kunden"
+      },
+      {
+        "from": "kunden.success",
+        "to": "dreimal"
+      },
+      {
+        "from": "dreimal.each",
+        "to": "nr"
+      },
+      {
+        "from": "zurueck",
+        "to": "nr.reset"
+      },
+      {
+        "from": "nr.success",
+        "to": "notiz"
+      },
+      {
+        "from": "notiz",
+        "to": "dreimal"
+      },
+      {
+        "from": "dreimal.done",
+        "to": "vorschau"
+      },
+      {
+        "from": "vorschau.success",
+        "to": "ende"
+      }
+    ]
+  }
+}

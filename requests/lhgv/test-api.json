@@ -64,8 +64,8 @@
           ],
           "username": [
             {
-              "x": 795,
-              "y": 492,
+              "x": 798,
+              "y": 500,
               "grip": {
                 "dx": 74,
                 "dy": -45
@@ -184,8 +184,8 @@
         "ports": [
           "@query"
         ],
-        "x": 1704,
-        "y": -108
+        "x": 2028,
+        "y": -96
       },
       {
         "id": "state",
@@ -301,13 +301,20 @@
         "id": "template-2",
         "kind": "template",
         "vars": {
-          "input": "$json.body"
+          "input": "$json.body",
+          "page": "$counter.body.value"
         },
         "data": {
-          "text": "?search={{input}}&limit=50"
+          "text": "?search={{input}}&limit=100&page={{page}}"
         },
-        "x": 1344,
-        "y": 300
+        "ports": [
+          "page"
+        ],
+        "portTypes": {
+          "page": "number"
+        },
+        "x": 1692,
+        "y": 144
       },
       {
         "id": "json",
@@ -315,8 +322,8 @@
         "data": {
           "value": "{\n  \"family\":[\n    {\n      \"operator\": \"IN\",\n      \"value\": [\"FoodEstablishment\"]\n    }\n  ]\n}"
         },
-        "x": 1344,
-        "y": 216
+        "x": 1692,
+        "y": 60
       },
       {
         "id": "extract-3",
@@ -327,26 +334,14 @@
         "data": {
           "path": "_embedded.items"
         },
-        "x": 1704,
-        "y": 192
-      },
-      {
-        "id": "map",
-        "kind": "map",
-        "vars": {
-          "list": "$extract-3.body"
-        },
-        "data": {
-          "expr": "item.values.name[0].data"
-        },
-        "x": 1704,
-        "y": 276
+        "x": 2028,
+        "y": 204
       },
       {
         "id": "end",
         "kind": "end",
         "vars": {
-          "restaurants": "$map.body.items"
+          "restaurants": "$filter.body.items"
         },
         "data": {
           "label": ""
@@ -354,8 +349,35 @@
         "ports": [
           "restaurants"
         ],
-        "x": 2100,
-        "y": -84
+        "x": 2424,
+        "y": -72
+      },
+      {
+        "id": "filter",
+        "kind": "filter",
+        "vars": {
+          "list": "$extract-3.body"
+        },
+        "data": {
+          "in": "*.values.name.*",
+          "where": "locale == 'de_CH'",
+          "take": "data"
+        },
+        "x": 2028,
+        "y": 288
+      },
+      {
+        "id": "counter",
+        "kind": "counter",
+        "data": {
+          "name": "page",
+          "start": "1",
+          "step": "1",
+          "scope": "runbook",
+          "hold": "true"
+        },
+        "x": 1692,
+        "y": -168
       }
     ],
     "edges": [
@@ -389,11 +411,15 @@
       },
       {
         "from": "state-3.success",
-        "to": "list-products"
+        "to": "counter"
       },
       {
         "from": "list-products.success",
         "to": "end"
+      },
+      {
+        "from": "counter.success",
+        "to": "list-products"
       }
     ]
   }
