@@ -1,0 +1,151 @@
+{
+  "type": "runbook",
+  "name": "List all Restaurant Names",
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "kind": "start",
+        "x": -264,
+        "y": 72
+      },
+      {
+        "id": "template-2",
+        "kind": "template",
+        "vars": {
+          "input": "$json.body"
+        },
+        "data": {
+          "text": "?search={{input}}&pagination_type=search_after"
+        },
+        "ports": [
+          "page",
+          "limit"
+        ],
+        "portTypes": {
+          "page": "number",
+          "limit": "number"
+        },
+        "x": 108,
+        "y": 384
+      },
+      {
+        "id": "json",
+        "kind": "json",
+        "data": {
+          "value": "{\n  \"family\":[\n    {\n      \"operator\": \"IN\",\n      \"value\": [\"FoodEstablishment\"]\n    }\n  ]\n}"
+        },
+        "x": 108,
+        "y": 300
+      },
+      {
+        "id": "end",
+        "kind": "end",
+        "vars": {
+          "restaurants": "$filter.body.items"
+        },
+        "data": {
+          "label": ""
+        },
+        "ports": [
+          "restaurants"
+        ],
+        "x": 1356,
+        "y": 84
+      },
+      {
+        "id": "filter",
+        "kind": "filter",
+        "vars": {
+          "list": "$list-products-2.body.items"
+        },
+        "data": {
+          "in": "*.values.name.*",
+          "where": "locale == 'de_CH'",
+          "take": "data"
+        },
+        "x": 564,
+        "y": 348
+      },
+      {
+        "id": "export",
+        "kind": "export",
+        "vars": {
+          "input": "$join.body"
+        },
+        "data": {
+          "path": "exports/restaurant-names.txt",
+          "format": "text",
+          "mode": "anhängen"
+        },
+        "group": "export",
+        "disabled": true,
+        "x": 960,
+        "y": 84
+      },
+      {
+        "id": "join",
+        "kind": "join",
+        "vars": {
+          "list": "$filter.body.items"
+        },
+        "data": {
+          "list": "",
+          "separator": "\\n"
+        },
+        "group": "export",
+        "disabled": true,
+        "x": 960,
+        "y": 264
+      },
+      {
+        "id": "get-oauth-token",
+        "kind": "subrunbook",
+        "request": "requests/lhgv/runbooks/get-oauth-token.json",
+        "x": 108,
+        "y": 72
+      },
+      {
+        "id": "list-products-2",
+        "kind": "paginate",
+        "request": "requests/lhgv/requests/list-products.json",
+        "vars": {
+          "token": "$get-oauth-token.body.token",
+          "@query": "$template-2.body"
+        },
+        "data": {
+          "mode": "next-url",
+          "next": "_links.next.href",
+          "max": "",
+          "param": "search_after",
+          "path": "_embedded.items",
+          "limit": "50",
+          "limitparam": "limit"
+        },
+        "ports": [
+          "@query"
+        ],
+        "x": 564,
+        "y": 72
+      }
+    ],
+    "edges": [
+      {
+        "from": "export",
+        "to": "end"
+      },
+      {
+        "from": "start",
+        "to": "get-oauth-token"
+      },
+      {
+        "from": "get-oauth-token.success",
+        "to": "list-products-2"
+      },
+      {
+        "from": "list-products-2.success",
+        "to": "export"
+      }
+    ]
+  }
+}

@@ -1,0 +1,103 @@
+{
+  "type": "runbook",
+  "name": "List all Attributes with Labels",
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "kind": "start",
+        "x": 80,
+        "y": 60
+      },
+      {
+        "id": "get-oauth-token",
+        "kind": "subrunbook",
+        "request": "requests/lhgv/runbooks/get-oauth-token.json",
+        "comment": "Testnotiz",
+        "x": 432,
+        "y": 60
+      },
+      {
+        "id": "list-attributes-2",
+        "kind": "paginate",
+        "request": "requests/lhgv/requests/list-attributes.json",
+        "vars": {
+          "token": "$get-oauth-token.body.token"
+        },
+        "data": {
+          "mode": "seite",
+          "path": "_embedded.items",
+          "limit": "50",
+          "limitparam": "limit",
+          "param": "page",
+          "next": "_links.next"
+        },
+        "x": 828,
+        "y": 60
+      },
+      {
+        "id": "only",
+        "kind": "only",
+        "vars": {
+          "input": "$list-attributes-2.body.items"
+        },
+        "data": {
+          "keep": "code, labels",
+          "mode": "behalten"
+        },
+        "x": 828,
+        "y": 312
+      },
+      {
+        "id": "export",
+        "kind": "export",
+        "vars": {
+          "input": "$only.body"
+        },
+        "data": {
+          "path": "requests/lhgv/exports/all-attributes-with-labels.json",
+          "format": "json",
+          "mode": "ersetzen"
+        },
+        "x": 1224,
+        "y": 60
+      },
+      {
+        "id": "end",
+        "kind": "end",
+        "vars": {
+          "attributes": "$only.body"
+        },
+        "data": {
+          "label": ""
+        },
+        "ports": [
+          "attributes"
+        ],
+        "portTypes": {
+          "attributes": "array"
+        },
+        "x": 1584,
+        "y": 60
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "get-oauth-token"
+      },
+      {
+        "from": "get-oauth-token.success",
+        "to": "list-attributes-2"
+      },
+      {
+        "from": "list-attributes-2.success",
+        "to": "export"
+      },
+      {
+        "from": "export",
+        "to": "end"
+      }
+    ]
+  }
+}

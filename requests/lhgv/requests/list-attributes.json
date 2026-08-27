@@ -1,0 +1,9 @@
+{
+  "name": "List Attributes",
+  "method": "GET",
+  "url": "{{base_url}}/api/rest/v1/attributes",
+  "auth": {
+    "type": "bearer",
+    "token": "{{token}}"
+  }
+}

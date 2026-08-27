@@ -1,0 +1,111 @@
+{
+  "type": "runbook",
+  "name": "List all Categories",
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "kind": "start",
+        "x": 80,
+        "y": 60
+      },
+      {
+        "id": "get-oauth-token",
+        "kind": "subrunbook",
+        "request": "requests/lhgv/runbooks/get-oauth-token.json",
+        "x": 480,
+        "y": 60
+      },
+      {
+        "id": "list-categories-2",
+        "kind": "paginate",
+        "request": "requests/lhgv/requests/list-categories.json",
+        "vars": {
+          "token": "$get-oauth-token.body.token"
+        },
+        "data": {
+          "mode": "seite",
+          "path": "_embedded.items",
+          "next": "_links.next",
+          "param": "page",
+          "limit": "50",
+          "limitparam": "limit"
+        },
+        "x": 864,
+        "y": 60
+      },
+      {
+        "id": "map",
+        "kind": "map",
+        "vars": {
+          "list": "$list-categories-2.body.items"
+        },
+        "data": {
+          "expr": "item.labels.de_CH"
+        },
+        "x": 864,
+        "y": 312
+      },
+      {
+        "id": "export",
+        "kind": "export",
+        "vars": {
+          "input": "$join.body"
+        },
+        "data": {
+          "path": "requests/lhgv/exports/categories-german.txt",
+          "format": "text",
+          "mode": "ersetzen"
+        },
+        "x": 1248,
+        "y": 60
+      },
+      {
+        "id": "join",
+        "kind": "join",
+        "vars": {
+          "list": "$map.body.items"
+        },
+        "data": {
+          "list": "",
+          "separator": "\\n"
+        },
+        "x": 1248,
+        "y": 240
+      },
+      {
+        "id": "end",
+        "kind": "end",
+        "vars": {
+          "categories": "$join.body"
+        },
+        "data": {
+          "label": ""
+        },
+        "ports": [
+          "categories"
+        ],
+        "x": 1608,
+        "y": 60
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "get-oauth-token"
+      },
+      {
+        "from": "get-oauth-token.success",
+        "to": "list-categories-2"
+      },
+      {
+        "from": "list-categories-2.success",
+        "to": "export"
+      },
+      {
+        "from": "export.success",
+        "to": "end"
+      }
+    ]
+  }
+}

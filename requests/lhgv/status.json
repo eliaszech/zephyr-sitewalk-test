@@ -1,5 +1,0 @@
-{
-  "name": "Get Api Infos",
-  "method": "GET",
-  "url": "{{base_url}}/api/rest/v1"
-}

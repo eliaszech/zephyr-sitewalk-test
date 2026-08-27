@@ -1,0 +1,1332 @@
+[
+  {
+    "code": "acceptsReservations",
+    "labels": {
+      "en_US": "accepts Reservations",
+      "de_CH": "nimmt Reservierungen an"
+    }
+  },
+  {
+    "code": "accessibility",
+    "labels": {
+      "en_US": "Accessibility",
+      "de_CH": "Zugänglichkeit"
+    }
+  },
+  {
+    "code": "accommodation_classification_garni",
+    "labels": {
+      "en_US": "Classification Garni",
+      "de_CH": "Klassifikation Garni"
+    }
+  },
+  {
+    "code": "accommodation_classification_superior",
+    "labels": {
+      "en_US": "Classification Superior",
+      "de_CH": "Klassifikation Superior"
+    }
+  },
+  {
+    "code": "action_button_text",
+    "labels": {
+      "en_US": "Call to Action Button",
+      "de_CH": "Call to Action Button"
+    }
+  },
+  {
+    "code": "action_button_url",
+    "labels": {
+      "en_US": "Call to Action URL",
+      "de_CH": "Call to Action URL"
+    }
+  },
+  {
+    "code": "action_infotext",
+    "labels": {
+      "en_US": "Call to Action Infotext",
+      "de_CH": "Call to Action Infotext"
+    }
+  },
+  {
+    "code": "addressCountry",
+    "labels": {
+      "en_US": "Country",
+      "de_CH": "Land"
+    }
+  },
+  {
+    "code": "addressLocality",
+    "labels": {
+      "en_US": "address Locality",
+      "de_CH": "Ort"
+    }
+  },
+  {
+    "code": "addressRegion",
+    "labels": {
+      "en_US": "address Region",
+      "de_CH": "Region / Kanton"
+    }
+  },
+  {
+    "code": "amenityFeature",
+    "labels": {
+      "en_US": "Location Feature / Equipment",
+      "de_CH": "Standort Merkmal / Ausstattungen"
+    }
+  },
+  {
+    "code": "attachments_description_01",
+    "labels": {
+      "en_US": "Attachment description 01",
+      "de_CH": "Anhang Beschreibung 01"
+    }
+  },
+  {
+    "code": "attachments_description_02",
+    "labels": {
+      "en_US": "Attachment description 02",
+      "de_CH": "Anhang Beschreibung 02"
+    }
+  },
+  {
+    "code": "attachments_description_03",
+    "labels": {
+      "en_US": "Attachment description 03",
+      "de_CH": "Anhang Beschreibung 03"
+    }
+  },
+  {
+    "code": "attachments_url_01",
+    "labels": {
+      "en_US": "Attachment 01",
+      "de_CH": "Anhang URL 01"
+    }
+  },
+  {
+    "code": "attachments_url_02",
+    "labels": {
+      "en_US": "Attachment 02",
+      "de_CH": "Anhang URL 02"
+    }
+  },
+  {
+    "code": "attachments_url_03",
+    "labels": {
+      "en_US": "Attachment 03",
+      "de_CH": "Anhang URL 03"
+    }
+  },
+  {
+    "code": "author",
+    "labels": {
+      "en_US": "Author",
+      "de_CH": "Urheber"
+    }
+  },
+  {
+    "code": "availability",
+    "labels": {
+      "en_US": "Item Availability",
+      "de_CH": "Verfügbarkeit"
+    }
+  },
+  {
+    "code": "availableLanguage",
+    "labels": {
+      "en_US": "available language",
+      "de_CH": "verfügbare Sprache"
+    }
+  },
+  {
+    "code": "avs_id",
+    "labels": {
+      "en_US": "AVS ID",
+      "de_CH": "AVS ID"
+    }
+  },
+  {
+    "code": "award",
+    "labels": {
+      "en_US": "award",
+      "de_CH": "Auszeichnungen"
+    }
+  },
+  {
+    "code": "birthDate",
+    "labels": {
+      "en_US": "birth Date",
+      "de_CH": "Geburtsdatum"
+    }
+  },
+  {
+    "code": "byDay",
+    "labels": {
+      "en_US": "by Day",
+      "de_CH": "nach Tagen"
+    }
+  },
+  {
+    "code": "byMonth",
+    "labels": {
+      "en_US": "by Month",
+      "de_CH": "nach Monat"
+    }
+  },
+  {
+    "code": "byMonthDay",
+    "labels": {
+      "en_US": "by Month Day",
+      "de_CH": "nach Monatstag"
+    }
+  },
+  {
+    "code": "canonicalUrl",
+    "labels": {
+      "en_US": "Canonical URL",
+      "de_CH": "Canonical URL"
+    }
+  },
+  {
+    "code": "capacity_bedrooms_double_room",
+    "labels": {
+      "en_US": "Number of double rooms",
+      "de_CH": "Anzahl Doppelzimmer"
+    }
+  },
+  {
+    "code": "capacity_bedrooms_selection",
+    "labels": {
+      "en_US": "Number of rooms (selection)",
+      "de_CH": "Anzahl Zimmer (Auswahl)"
+    }
+  },
+  {
+    "code": "capacity_bedrooms_single_room",
+    "labels": {
+      "en_US": "Number of single rooms",
+      "de_CH": "Anzahl Einzelzimmer"
+    }
+  },
+  {
+    "code": "capacity_bedrooms_triple_rooms",
+    "labels": {
+      "en_US": "Number of triple rooms",
+      "de_CH": "Anzahl Dreibettzimmer"
+    }
+  },
+  {
+    "code": "checkinTime",
+    "labels": {
+      "en_US": "checkin Time",
+      "de_CH": "Check-in Zeit"
+    }
+  },
+  {
+    "code": "checkoutTime",
+    "labels": {
+      "en_US": "checkout Time",
+      "de_CH": "Check-out Zeit"
+    }
+  },
+  {
+    "code": "color",
+    "labels": {
+      "en_US": "Color",
+      "de_CH": "Farbe"
+    }
+  },
+  {
+    "code": "contentUrl",
+    "labels": {
+      "en_US": "content URL",
+      "de_CH": "Inhalt URL"
+    }
+  },
+  {
+    "code": "copyrightHolder",
+    "labels": {
+      "en_US": "copyright Holder",
+      "de_CH": "Copyright-Inhaber"
+    }
+  },
+  {
+    "code": "currenciesAccepted",
+    "labels": {
+      "en_US": "currencies Accepted",
+      "de_CH": "akzeptierte Währungen"
+    }
+  },
+  {
+    "code": "dayOfWeek",
+    "labels": {
+      "en_US": "dayOfWeek",
+      "de_CH": "Wochentage"
+    }
+  },
+  {
+    "code": "dayTime",
+    "labels": {
+      "en_US": "day Time",
+      "de_CH": "Tageszeit"
+    }
+  },
+  {
+    "code": "department",
+    "labels": {
+      "en_US": "department",
+      "de_CH": "Abteilung [department]"
+    }
+  },
+  {
+    "code": "description",
+    "labels": {
+      "en_US": "Description",
+      "de_CH": "Beschreibung"
+    }
+  },
+  {
+    "code": "deskline_guid",
+    "labels": {
+      "en_US": "Deskline GUID",
+      "de_CH": "Deskline GUID"
+    }
+  },
+  {
+    "code": "disambiguatingDescription",
+    "labels": {
+      "en_US": "Short description",
+      "de_CH": "Kurzbeschreibung"
+    }
+  },
+  {
+    "code": "discoverId",
+    "labels": {
+      "en_US": "Discover.swiss Identifier",
+      "de_CH": "Discover.swiss Identifier"
+    }
+  },
+  {
+    "code": "doorTime",
+    "labels": {
+      "en_US": "door Time",
+      "de_CH": "Tür Öffnung"
+    }
+  },
+  {
+    "code": "duration",
+    "labels": {
+      "en_US": "duration",
+      "de_CH": "Dauer / Zeitbedarf"
+    }
+  },
+  {
+    "code": "edomizil_id",
+    "labels": {
+      "en_US": "Edomizil ID",
+      "de_CH": "Edomizil ID"
+    }
+  },
+  {
+    "code": "email",
+    "labels": {
+      "en_US": "e-mail",
+      "de_CH": "E-Mail"
+    }
+  },
+  {
+    "code": "embedUrl",
+    "labels": {
+      "en_US": "embed URL",
+      "de_CH": "eingebettete URL"
+    }
+  },
+  {
+    "code": "endDate",
+    "labels": {
+      "en_US": "end Date",
+      "de_CH": "End-Datum"
+    }
+  },
+  {
+    "code": "endTime",
+    "labels": {
+      "en_US": "end Time",
+      "de_CH": "End-Zeit"
+    }
+  },
+  {
+    "code": "eventAttendanceMode",
+    "labels": {
+      "en_US": "event Attendance Mode",
+      "de_CH": "Veranstaltung Teilnahmemodus"
+    }
+  },
+  {
+    "code": "eventfrog_groupId",
+    "labels": {
+      "en_US": "Eventfrog GroupID",
+      "de_CH": "Eventfrog GroupID"
+    }
+  },
+  {
+    "code": "eventfrog_id",
+    "labels": {
+      "en_US": "Eventfrog ID",
+      "de_CH": "Eventfrog ID"
+    }
+  },
+  {
+    "code": "eventfrog_place_id",
+    "labels": {
+      "en_US": "Eventfrog Place ID",
+      "de_CH": "Eventfrog Place ID"
+    }
+  },
+  {
+    "code": "eventStatus",
+    "labels": {
+      "en_US": "event Status",
+      "de_CH": "Veranstaltungs Status"
+    }
+  },
+  {
+    "code": "familyName",
+    "labels": {
+      "en_US": "family Name",
+      "de_CH": "Nachname"
+    }
+  },
+  {
+    "code": "features",
+    "labels": {
+      "en_US": "Facility",
+      "de_CH": "Ausstattung"
+    }
+  },
+  {
+    "code": "filter_life_phase",
+    "labels": {
+      "en_US": "Life phase",
+      "de_CH": "Lebensphase "
+    }
+  },
+  {
+    "code": "floorLevel",
+    "labels": {
+      "en_US": "floor Level",
+      "de_CH": "Stockwerk Ebene"
+    }
+  },
+  {
+    "code": "floorSize",
+    "labels": {
+      "en_US": "Floor Size",
+      "de_CH": "Raumgrösse"
+    }
+  },
+  {
+    "code": "foundingDate",
+    "labels": {
+      "en_US": "founding Date",
+      "de_CH": "Gründungsdatum"
+    }
+  },
+  {
+    "code": "garni",
+    "labels": {
+      "en_US": "Classification Garni",
+      "de_CH": "Klassifikation Garni"
+    }
+  },
+  {
+    "code": "gender",
+    "labels": {
+      "en_US": "gender",
+      "de_CH": "Geschlecht"
+    }
+  },
+  {
+    "code": "givenName",
+    "labels": {
+      "en_US": "given Name",
+      "de_CH": "Vorname"
+    }
+  },
+  {
+    "code": "google_image_gallery_use_pro_channel",
+    "labels": {
+      "en_US": "Use Google gallery images (per output channel)",
+      "de_CH": "Galerie-Bilder von Google verwenden (pro Ausgabekanal)"
+    }
+  },
+  {
+    "code": "google_opening_hours_use",
+    "labels": {
+      "en_US": "Use Google opening hours",
+      "de_CH": "Google Öffnungszeiten nutzen"
+    }
+  },
+  {
+    "code": "google_place_id",
+    "labels": {
+      "en_US": "Google Place ID",
+      "de_CH": "Google Place ID"
+    }
+  },
+  {
+    "code": "guidle_event_id",
+    "labels": {
+      "en_US": "Guidle Event ID",
+      "de_CH": "Guidle Event ID"
+    }
+  },
+  {
+    "code": "guidle_lastUpdateDate",
+    "labels": {
+      "en_US": "Guidle last Update Date",
+      "de_CH": "Guidle last Update Date"
+    }
+  },
+  {
+    "code": "guidle_place_id",
+    "labels": {
+      "en_US": "Guidle Place Id",
+      "de_CH": "Guidle Place Id"
+    }
+  },
+  {
+    "code": "guidle_webcode",
+    "labels": {
+      "en_US": "Guidle Webcode",
+      "de_CH": "Guidle Webcode"
+    }
+  },
+  {
+    "code": "hasMenu",
+    "labels": {
+      "en_US": "has Menu",
+      "de_CH": "Speisekarte"
+    }
+  },
+  {
+    "code": "height",
+    "labels": {
+      "en_US": "Height",
+      "de_CH": "Höhe"
+    }
+  },
+  {
+    "code": "holidaycheck_id",
+    "labels": {
+      "en_US": "Holidaycheck ID",
+      "de_CH": "Holidaycheck ID"
+    }
+  },
+  {
+    "code": "honorificPrefix",
+    "labels": {
+      "en_US": "honorific Prefix",
+      "de_CH": "Anrede"
+    }
+  },
+  {
+    "code": "HowToDirection",
+    "labels": {
+      "en_US": "How To Direction",
+      "de_CH": "Anreiseinformationen"
+    }
+  },
+  {
+    "code": "image",
+    "labels": {
+      "en_US": "Image",
+      "de_CH": "Hauptbild"
+    }
+  },
+  {
+    "code": "image_01_scope",
+    "labels": {
+      "en_US": "Gallery Image 01",
+      "de_CH": "Galerie-Bild 01"
+    }
+  },
+  {
+    "code": "image_01_scope_description",
+    "labels": {
+      "en_US": "Gallery Image 01 description",
+      "de_CH": "Galerie-Bild 01 Beschreibung"
+    }
+  },
+  {
+    "code": "image_02_scope",
+    "labels": {
+      "en_US": "Gallery Image 02",
+      "de_CH": "Galerie-Bild 02"
+    }
+  },
+  {
+    "code": "image_02_scope_description",
+    "labels": {
+      "en_US": "Gallery Image 02 description",
+      "de_CH": "Galerie-Bild 02 Beschreibung"
+    }
+  },
+  {
+    "code": "image_03_scope",
+    "labels": {
+      "en_US": "Gallery Image 03",
+      "de_CH": "Galerie-Bild 03"
+    }
+  },
+  {
+    "code": "image_03_scope_description",
+    "labels": {
+      "en_US": "Gallery Image 03 description",
+      "de_CH": "Galerie-Bild 03 Beschreibung"
+    }
+  },
+  {
+    "code": "image_04_scope",
+    "labels": {
+      "en_US": "Gallery Image 04",
+      "de_CH": "Galerie-Bild 04"
+    }
+  },
+  {
+    "code": "image_04_scope_description",
+    "labels": {
+      "en_US": "Gallery Image 04 description",
+      "de_CH": "Galerie-Bild 04 Beschreibung"
+    }
+  },
+  {
+    "code": "image_05_scope",
+    "labels": {
+      "en_US": "Gallery Image 05",
+      "de_CH": "Galerie-Bild 05"
+    }
+  },
+  {
+    "code": "image_05_scope_description",
+    "labels": {
+      "en_US": "Gallery Image 05 description",
+      "de_CH": "Galerie-Bild 05 Beschreibung"
+    }
+  },
+  {
+    "code": "image_06_scope",
+    "labels": {
+      "en_US": "Gallery Image 06",
+      "de_CH": "Galerie-Bild 06"
+    }
+  },
+  {
+    "code": "image_06_scope_description",
+    "labels": {
+      "en_US": "Gallery Image 06 description",
+      "de_CH": "Galerie-Bild 06 Beschreibung"
+    }
+  },
+  {
+    "code": "image_07_scope",
+    "labels": {
+      "en_US": "Gallery Image 07",
+      "de_CH": "Galerie-Bild 07"
+    }
+  },
+  {
+    "code": "image_07_scope_description",
+    "labels": {
+      "en_US": "Gallery Image 07 description",
+      "de_CH": "Galerie-Bild 07 Beschreibung"
+    }
+  },
+  {
+    "code": "image_08_scope",
+    "labels": {
+      "en_US": "Gallery Image 08",
+      "de_CH": "Galerie-Bild 08"
+    }
+  },
+  {
+    "code": "image_08_scope_description",
+    "labels": {
+      "en_US": "Gallery Image 08 description",
+      "de_CH": "Galerie-Bild 08 Beschreibung"
+    }
+  },
+  {
+    "code": "image_09_scope",
+    "labels": {
+      "en_US": "Gallery Image 09",
+      "de_CH": "Galerie-Bild 09"
+    }
+  },
+  {
+    "code": "image_09_scope_description",
+    "labels": {
+      "en_US": "Gallery Image 09 description",
+      "de_CH": "Galerie-Bild 09 Beschreibung"
+    }
+  },
+  {
+    "code": "image_10_scope",
+    "labels": {
+      "en_US": "Gallery Image 10",
+      "de_CH": "Galerie-Bild 10"
+    }
+  },
+  {
+    "code": "image_10_scope_description",
+    "labels": {
+      "en_US": "Gallery Image 10 description",
+      "de_CH": "Galerie-Bild 10 Beschreibung"
+    }
+  },
+  {
+    "code": "image_autumn",
+    "labels": {
+      "en_US": "Main image autumn",
+      "de_CH": "Hauptbild Herbst"
+    }
+  },
+  {
+    "code": "image_description",
+    "labels": {
+      "en_US": "Image description",
+      "de_CH": "Hauptbild Beschreibung"
+    }
+  },
+  {
+    "code": "image_spring",
+    "labels": {
+      "en_US": "Main image spring",
+      "de_CH": "Hauptbild Frühling"
+    }
+  },
+  {
+    "code": "image_summer",
+    "labels": {
+      "en_US": "Main image summer",
+      "de_CH": "Hauptbild Sommer"
+    }
+  },
+  {
+    "code": "image_winter",
+    "labels": {
+      "en_US": "Main image winter",
+      "de_CH": "Hauptbild Winter"
+    }
+  },
+  {
+    "code": "indoor_outdoor",
+    "labels": {
+      "en_US": "Weather dependency",
+      "de_CH": "Wetterabhängigkeit"
+    }
+  },
+  {
+    "code": "inLanguage",
+    "labels": {
+      "en_US": "in Language",
+      "de_CH": "in Sprache"
+    }
+  },
+  {
+    "code": "isAccessibleForFree",
+    "labels": {
+      "en_US": "is Accessible For Free",
+      "de_CH": "ist kostenlos zugänglich"
+    }
+  },
+  {
+    "code": "ItemAvailability",
+    "labels": {
+      "en_US": "Item Availability",
+      "de_CH": "Verfügbarkeit der Artikel"
+    }
+  },
+  {
+    "code": "jobTitle",
+    "labels": {
+      "en_US": "job Title",
+      "de_CH": "Position"
+    }
+  },
+  {
+    "code": "labels",
+    "labels": {
+      "en_US": "Awards",
+      "de_CH": "Auszeichnung"
+    }
+  },
+  {
+    "code": "latitude",
+    "labels": {
+      "en_US": "latitude",
+      "de_CH": "Breitengrad"
+    }
+  },
+  {
+    "code": "legalName",
+    "labels": {
+      "en_US": "legal Name",
+      "de_CH": "Firma / Organisation"
+    }
+  },
+  {
+    "code": "leisure",
+    "labels": {
+      "en_US": "Leisure activities",
+      "de_CH": "Freizeittyp"
+    }
+  },
+  {
+    "code": "license",
+    "labels": {
+      "en_US": "license",
+      "de_CH": "Lizenz"
+    }
+  },
+  {
+    "code": "location",
+    "labels": {
+      "en_US": "Location",
+      "de_CH": "Standort"
+    }
+  },
+  {
+    "code": "logo",
+    "labels": {
+      "en_US": "Logo",
+      "de_CH": "Logo"
+    }
+  },
+  {
+    "code": "longitude",
+    "labels": {
+      "en_US": "longitude",
+      "de_CH": "Längengrad"
+    }
+  },
+  {
+    "code": "markerIcon",
+    "labels": {
+      "en_US": "Marker Icon",
+      "de_CH": "Marker Icon"
+    }
+  },
+  {
+    "code": "maximumAttendeeCapacity",
+    "labels": {
+      "en_US": "maximum Attendee Capacity",
+      "de_CH": "maximale Teilnehmerkapazität"
+    }
+  },
+  {
+    "code": "media_360_link",
+    "labels": {
+      "en_US": "Media 360° Link",
+      "de_CH": "Media 360° Link"
+    }
+  },
+  {
+    "code": "metaDescription",
+    "labels": {
+      "en_US": "Meta Description",
+      "de_CH": "Meta Description"
+    }
+  },
+  {
+    "code": "metaTitle",
+    "labels": {
+      "en_US": "Meta Title",
+      "de_CH": "Meta Title"
+    }
+  },
+  {
+    "code": "name",
+    "labels": {
+      "en_US": "Name",
+      "de_CH": "Name"
+    }
+  },
+  {
+    "code": "numberOfBathroomsTotal",
+    "labels": {
+      "en_US": "number Of Bathrooms Total",
+      "de_CH": "Anzahl der Bäder Insgesamt"
+    }
+  },
+  {
+    "code": "numberOfBedrooms",
+    "labels": {
+      "en_US": "Number of bedrooms",
+      "de_CH": "Anzahl Schlafzimmer"
+    }
+  },
+  {
+    "code": "numberOfBeds",
+    "labels": {
+      "en_US": "Number of beds",
+      "de_CH": "Gesamtzahl Betten"
+    }
+  },
+  {
+    "code": "numberOfRooms",
+    "labels": {
+      "en_US": "number Of Rooms",
+      "de_CH": "Gesamtzahl der Zimmer"
+    }
+  },
+  {
+    "code": "occupancy",
+    "labels": {
+      "en_US": "occupancy",
+      "de_CH": "Belegung"
+    }
+  },
+  {
+    "code": "odooContactId",
+    "labels": {
+      "en_US": "odoo Contact Id",
+      "de_CH": "odoo Contact Id"
+    }
+  },
+  {
+    "code": "odooProductId",
+    "labels": {
+      "en_US": "odoo Produkte Id",
+      "de_CH": "odoo Produkte Id"
+    }
+  },
+  {
+    "code": "offers",
+    "labels": {
+      "en_US": "Price information",
+      "de_CH": "Preis-Informationen"
+    }
+  },
+  {
+    "code": "openingHours",
+    "labels": {
+      "en_US": "opening Hours",
+      "de_CH": "Öffnungszeiten Text"
+    }
+  },
+  {
+    "code": "openingHours_text",
+    "labels": {
+      "en_US": "openingHours_text",
+      "de_CH": "Öffnungszeiten Text (Alt)"
+    }
+  },
+  {
+    "code": "openingHoursSpecification",
+    "labels": {
+      "en_US": "opening Hours Specification",
+      "de_CH": "Öffnungszeiten Spezifikation"
+    }
+  },
+  {
+    "code": "openstreetmap_id",
+    "labels": {
+      "en_US": "OpenStreetMap ID",
+      "de_CH": "OpenStreetMap ID"
+    }
+  },
+  {
+    "code": "ost_claim",
+    "labels": {
+      "en_US": "Claim",
+      "de_CH": "Anspruch"
+    }
+  },
+  {
+    "code": "ost_suitable_for",
+    "labels": {
+      "en_US": "Suitable for",
+      "de_CH": "Geeignet für"
+    }
+  },
+  {
+    "code": "outdooractive_poi_category",
+    "labels": {
+      "en_US": "Outdooractive POI Point Type",
+      "de_CH": "Outdooractive POI Punkttyp"
+    }
+  },
+  {
+    "code": "outdooractive_poi_id",
+    "labels": {
+      "en_US": "Outdooractive POI ID",
+      "de_CH": "Outdooractive POI ID"
+    }
+  },
+  {
+    "code": "parking",
+    "labels": {
+      "en_US": "Parking facilities",
+      "de_CH": "Parkmöglichkeiten"
+    }
+  },
+  {
+    "code": "paymentAccepted",
+    "labels": {
+      "en_US": "payment Accepted",
+      "de_CH": "akzeptierte Zahlungsart"
+    }
+  },
+  {
+    "code": "petsAllowed",
+    "labels": {
+      "en_US": "pets Allowed",
+      "de_CH": "Haustiere erlaubt"
+    }
+  },
+  {
+    "code": "postalCode",
+    "labels": {
+      "en_US": "postal Code",
+      "de_CH": "PLZ"
+    }
+  },
+  {
+    "code": "potentialAction",
+    "labels": {
+      "en_US": "potentialAction",
+      "de_CH": "Call to Action Button"
+    }
+  },
+  {
+    "code": "price",
+    "labels": {
+      "en_US": "price",
+      "de_CH": "Preis"
+    }
+  },
+  {
+    "code": "priceRange",
+    "labels": {
+      "en_US": "Price range",
+      "de_CH": "Preis-Kategorie"
+    }
+  },
+  {
+    "code": "priceValidFrom",
+    "labels": {
+      "en_US": "price Valid From",
+      "de_CH": "Preis gültig von"
+    }
+  },
+  {
+    "code": "priceValidUntil",
+    "labels": {
+      "en_US": "price Valid Until",
+      "de_CH": "Preis gültig bis"
+    }
+  },
+  {
+    "code": "promo_sort_order_scope",
+    "labels": {
+      "en_US": "Manual sorting",
+      "de_CH": "Manuelle Sortierung"
+    }
+  },
+  {
+    "code": "publicTransport",
+    "labels": {
+      "en_US": "Public transportation",
+      "de_CH": "Öffentlicher Verkehr"
+    }
+  },
+  {
+    "code": "sacId",
+    "labels": {
+      "en_US": "SAC Id",
+      "de_CH": "SAC Id"
+    }
+  },
+  {
+    "code": "search_text_pro_channel",
+    "labels": {
+      "en_US": "Search text per output channel",
+      "de_CH": "Suchtext pro Ausgabekanal"
+    }
+  },
+  {
+    "code": "season",
+    "labels": {
+      "en_US": "Seasonal times",
+      "de_CH": "Saison"
+    }
+  },
+  {
+    "code": "seating_banquet",
+    "labels": {
+      "en_US": "Banquet",
+      "de_CH": "Bankett"
+    }
+  },
+  {
+    "code": "seating_bar_table",
+    "labels": {
+      "en_US": "Aperitif",
+      "de_CH": "Apéro"
+    }
+  },
+  {
+    "code": "seating_block",
+    "labels": {
+      "en_US": "Block",
+      "de_CH": "Block"
+    }
+  },
+  {
+    "code": "seating_boardroom",
+    "labels": {
+      "en_US": "Boardroom",
+      "de_CH": "Boardroom"
+    }
+  },
+  {
+    "code": "seating_concert",
+    "labels": {
+      "en_US": "Concert",
+      "de_CH": "Konzert"
+    }
+  },
+  {
+    "code": "seating_seminar",
+    "labels": {
+      "en_US": "Seminar",
+      "de_CH": "Seminar"
+    }
+  },
+  {
+    "code": "seating_ushape",
+    "labels": {
+      "en_US": "U-shape",
+      "de_CH": "U-Form"
+    }
+  },
+  {
+    "code": "servesCuisine",
+    "labels": {
+      "en_US": "Kitchen",
+      "de_CH": "Küche"
+    }
+  },
+  {
+    "code": "size",
+    "labels": {
+      "en_US": "Size",
+      "de_CH": "Grösse"
+    }
+  },
+  {
+    "code": "sku",
+    "labels": {
+      "en_US": "SKU",
+      "de_CH": "SKU"
+    }
+  },
+  {
+    "code": "st_campaigns",
+    "labels": {
+      "en_US": "Campaigns of Switzerland Tourism",
+      "de_CH": "Kampagnen von Schweiz Tourismus"
+    }
+  },
+  {
+    "code": "st_segment",
+    "labels": {
+      "en_US": "Segments of Switzerland Tourism",
+      "de_CH": "Persona - Gästesegmente von Schweiz Tourismus"
+    }
+  },
+  {
+    "code": "starRating",
+    "labels": {
+      "en_US": "star Rating",
+      "de_CH": "Sterne Bewertung"
+    }
+  },
+  {
+    "code": "startDate",
+    "labels": {
+      "en_US": "startDate",
+      "de_CH": "Start-Datum"
+    }
+  },
+  {
+    "code": "startTime",
+    "labels": {
+      "en_US": "start Time",
+      "de_CH": "Start-Zeit"
+    }
+  },
+  {
+    "code": "streetAddress",
+    "labels": {
+      "en_US": "street Address",
+      "de_CH": "Strasse"
+    }
+  },
+  {
+    "code": "suitable_for",
+    "labels": {
+      "en_US": "Suitable for",
+      "de_CH": "Geeignet für"
+    }
+  },
+  {
+    "code": "superior",
+    "labels": {
+      "en_US": "Classification Superior",
+      "de_CH": "Klassifikation Superior"
+    }
+  },
+  {
+    "code": "target",
+    "labels": {
+      "en_US": "target",
+      "de_CH": "Call to Action URL"
+    }
+  },
+  {
+    "code": "target_group_selection",
+    "labels": {
+      "en_US": "Target group",
+      "de_CH": "Zielgruppe"
+    }
+  },
+  {
+    "code": "telephone",
+    "labels": {
+      "en_US": "Telephone",
+      "de_CH": "Telefon"
+    }
+  },
+  {
+    "code": "thumbnailUrl",
+    "labels": {
+      "en_US": "Thumbnail URL",
+      "de_CH": "Vorschaubild URL"
+    }
+  },
+  {
+    "code": "tomas_id",
+    "labels": {
+      "en_US": "TOMAS ID",
+      "de_CH": "TOMAS ID"
+    }
+  },
+  {
+    "code": "tourismregion",
+    "labels": {
+      "en_US": "Tourism region",
+      "de_CH": "Tourismusregion"
+    }
+  },
+  {
+    "code": "tripadvisor_id",
+    "labels": {
+      "en_US": "Tripadvisor ID",
+      "de_CH": "Tripadvisor ID"
+    }
+  },
+  {
+    "code": "trustyou_id",
+    "labels": {
+      "en_US": "Trustyou ID",
+      "de_CH": "Trustyou ID"
+    }
+  },
+  {
+    "code": "typicalAgeRange",
+    "labels": {
+      "en_US": "typical Age Range",
+      "de_CH": "typische Altersspanne"
+    }
+  },
+  {
+    "code": "typo3_uid",
+    "labels": {
+      "de_CH": "Typo3 uid",
+      "en_US": "Typo3 uid"
+    }
+  },
+  {
+    "code": "url",
+    "labels": {
+      "en_US": "url",
+      "de_CH": "Webseite"
+    }
+  },
+  {
+    "code": "validFrom",
+    "labels": {
+      "en_US": "valid From",
+      "de_CH": "gültig von"
+    }
+  },
+  {
+    "code": "validThrough",
+    "labels": {
+      "en_US": "valid Through",
+      "de_CH": "gültig bis"
+    }
+  },
+  {
+    "code": "vimeo_id",
+    "labels": {
+      "en_US": "Vimeo ID",
+      "de_CH": "Vimeo ID"
+    }
+  },
+  {
+    "code": "weatherDependency",
+    "labels": {
+      "en_US": "weather Dependency",
+      "de_CH": "Wetterabhängigkeit"
+    }
+  },
+  {
+    "code": "weight",
+    "labels": {
+      "en_US": "Weight",
+      "de_CH": "Gewicht"
+    }
+  },
+  {
+    "code": "width",
+    "labels": {
+      "en_US": "Width",
+      "de_CH": "Breite"
+    }
+  },
+  {
+    "code": "wilken_BPID",
+    "labels": {
+      "en_US": "Wilken CRM BPID",
+      "de_CH": "Wilken CRM BPID"
+    }
+  },
+  {
+    "code": "yearBuilt",
+    "labels": {
+      "en_US": "year Built",
+      "de_CH": "Baujahr"
+    }
+  },
+  {
+    "code": "youtube_id",
+    "labels": {
+      "en_US": "Youtube ID",
+      "de_CH": "Youtube ID"
+    }
+  }
+]
